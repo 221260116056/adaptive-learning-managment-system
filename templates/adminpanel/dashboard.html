@@ -1,0 +1,53 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Real-time oversight of the learning platform{% endblock %}
+
+{% block content %}
+<div class="grid stats-grid">
+    <div class="card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">{{ total_users }}</div>
+    </div>
+    <div class="card">
+        <div class="stat-label">Pending Approvals</div>
+        <div class="stat-value">{{ pending_approvals }}</div>
+    </div>
+    <div class="card">
+        <div class="stat-label">Superusers</div>
+        <div class="stat-value">{{ superusers }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="toolbar">
+        <h3 style="margin: 0;">Recent Security Events</h3>
+        <a class="btn secondary" href="{% url 'adminpanel:audit_logs' %}">View All Logs</a>
+    </div>
+    {% if recent_logs %}
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in recent_logs %}
+            <tr>
+                <td>{{ log.user.email|default:log.user.username }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details|default:'-' }}</td>
+                <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No audit events have been recorded yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

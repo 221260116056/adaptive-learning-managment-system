@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Adaptive Learning MS{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --dark: #1a1a2e;
+            --light: #f3f4f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .navbar {
+            background: var(--white);
+            color: var(--dark);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-main {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex: 1 1 520px;
+            min-width: 0;
+        }
+
+        .navbar-brand {
+            color: var(--primary);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .search-container {
+            flex: 1 1 320px;
+            max-width: 480px;
+            position: relative;
+            min-width: 220px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 0.9rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .user-profile-trigger:hover {
+            background: #f1f5f9;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 240px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .profile-dropdown.active {
+            display: flex;
+        }
+
+        .dropdown-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+
+        .dropdown-section {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.25rem;
+            color: var(--dark);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .dropdown-item.logout {
+            color: var(--danger);
+        }
+
+        /* Notifications styling */
+        .notif-trigger {
+            position: relative;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 8px;
+            color: #64748b;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notif-trigger:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        .notif-dropdown {
+            position: absolute;
+            top: calc(100% + 15px);
+            right: 0;
+            width: 360px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1001;
+            transform-origin: top right;
+            animation: dropdownFade 0.2s ease-out;
+        }
+
+        @keyframes dropdownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notif-dropdown.active {
+            display: flex;
+        }
+
+        .notif-dropdown .dropdown-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notif-dropdown .dropdown-header p {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .notif-scroll {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .notif-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notif-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notif-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+
+        .notif-item {
+            padding: 1.15rem 1.5rem;
+            border-bottom: 1px solid #f8fafc;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.2s;
+            display: block;
+        }
+
+        .notif-item:hover {
+            background: #f8fafc;
+        }
+
+        .notif-item.unread {
+            background: #f0f7ff;
+            border-left: 3px solid var(--primary);
+            padding-left: calc(1.5rem - 3px);
+        }
+
+        .notif-item p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .notif-item span {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            display: block;
+            font-weight: 400;
+        }
+
+        .notif-footer {
+            padding: 1rem;
+            text-align: center;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .notif-footer a {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
+        .content {
+            padding: 2rem;
+            min-height: calc(100vh - 160px);
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .navbar {
+                padding: 0.9rem 1.25rem;
+            }
+
+            .navbar-main {
+                gap: 1rem;
+                flex-basis: 100%;
+            }
+
+            .search-container {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .navbar-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                width: 100%;
+            }
+
+            .navbar-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .content {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block navbar %}
+    <nav class="navbar">
+        <div class="navbar-main">
+            <a href="{% url 'dashboard' %}" class="navbar-brand" style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800;">AL</div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 1.25rem; font-weight: 800; line-height: 1;">Adaptive</span>
+                    <span style="font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Learning MS</span>
+                </div>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'my_courses' %}" class="nav-link">My Courses</a>
+                <a href="{% url 'explore' %}" class="nav-link">Explore</a>
+                <a href="{% url 'certificates' %}" class="nav-link">Certificates</a>
+            </div>
+        </div>
+
+        <form action="{% url 'explore' %}" method="get" class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="q" class="search-input" placeholder="Search for courses..." value="{{ request.GET.q }}">
+        </form>
+
+        <div class="navbar-actions">
+            <div class="notif-trigger" id="notifTrigger" style="margin-right: 0.5rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {% if unread_notifications_count > 0 %}
+                    <span class="notif-badge">{{ unread_notifications_count }}</span>
+                {% endif %}
+                
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="dropdown-header">
+                        <p>Notifications</p>
+                        {% if unread_notifications_count > 0 %}
+                        <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">{{ unread_notifications_count }} New</span>
+                        {% endif %}
+                    </div>
+                    <div class="notif-scroll">
+                        {% for n in latest_notifications %}
+                        <a href="{% if n.link %}{{ n.link }}{% else %}{% url 'notifications' %}{% endif %}" class="notif-item {% if not n.is_read %}unread{% endif %}">
+                            <p>{{ n.message }}</p>
+                            <span>{{ n.created_at|timesince }} ago</span>
+                        </a>
+                        {% empty %}
+                        <div style="padding: 3rem 1.5rem; text-align: center; color: #94a3b8;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</div>
+                            <p style="margin: 0; font-size: 0.9rem;">All caught up!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="notif-footer">
+                        <a href="{% url 'notifications' %}">See All Notifications</a>
+                    </div>
+                </div>
+            </div>
+            <div class="user-profile-trigger" id="profileTrigger">
+                <span style="font-weight: 600;">{{ request.user.username }} ▼</span>
+                {% if request.user.studentprofile.profile_image %}
+                    <img src="{{ request.user.studentprofile.profile_image.url }}" alt="{{ request.user.username }}" style="width:32px;height:32px;border-radius:10px;object-fit:cover;" />
+                {% else %}
+                    <span>👤</span>
+                {% endif %}
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <p style="margin: 0; font-weight: 700;">{{ request.user.get_full_name|default:request.user.username }}</p>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase;">Student</p>
+                    </div>
+                    <div class="dropdown-section">
+                        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+                        <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+                    </div>
+                    <div class="dropdown-section">
+                        <a href="{% url 'logout' %}" class="dropdown-item logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer class="footer">
+        &copy; 2026 alms - Adaptive Learning Management System.
+    </footer>
+    {% endblock %}
+
+    <script>
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileDropdown = document.getElementById('profileDropdown');
+        if (profileTrigger && profileDropdown) {
+            profileTrigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
+            });
+            document.addEventListener('click', function () {
+                profileDropdown.classList.remove('active');
+            });
+            profileDropdown.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        }
+
+        const notifTrigger = document.getElementById('notifTrigger');
+        const notifDropdown = document.getElementById('notifDropdown');
+        if (notifTrigger && notifDropdown) {
+            notifTrigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('active');
+                // Close profile dropdown if open
+                if (profileDropdown) profileDropdown.classList.remove('active');
+            });
+            document.addEventListener('click', function () {
+                notifDropdown.classList.remove('active');
+            });
+            notifDropdown.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

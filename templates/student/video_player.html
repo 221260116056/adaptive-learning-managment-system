@@ -1,0 +1,949 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .player-main-wrapper {
+        margin: 1.5rem auto 0;
+        max-width: 1280px;
+        padding: 0 1.5rem;
+    }
+
+    .player-grid {
+        display: grid;
+        grid-template-columns: 2.8fr 1.2fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .viewport-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .video-card,
+    .course-info-card,
+    .sidebar-card,
+    #theorySection {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(15, 23, 42, 0.05);
+    }
+
+    .video-card {
+        background: #000;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+        position: relative;
+    }
+
+    .video-controls {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(15, 23, 42, 0.85) 80%);
+        z-index: 20;
+    }
+
+    .control-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(15, 23, 42, 0.6);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .control-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(15, 23, 42, 0.85);
+    }
+
+    .progress-shell-inline {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 120px;
+    }
+
+    .progress-range {
+        width: 100%;
+        appearance: none;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.25);
+        outline: none;
+        cursor: pointer;
+    }
+
+    .progress-range::-webkit-slider-thumb {
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid rgba(15, 23, 42, 0.6);
+    }
+
+    .progress-range::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid rgba(15, 23, 42, 0.6);
+    }
+
+    .time-label {
+        font-size: 0.78rem;
+        color: #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .settings-panel {
+        position: absolute;
+        right: 12px;
+        bottom: 58px;
+        background: rgba(17, 24, 39, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 12px;
+        padding: 0.4rem;
+        min-width: 240px;
+        display: none;
+        flex-direction: column;
+        gap: 0.35rem;
+        backdrop-filter: blur(8px);
+        z-index: 25;
+    }
+
+    .settings-panel.show {
+        display: flex;
+    }
+
+    .settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.6rem 0.7rem;
+        border-radius: 10px;
+        cursor: pointer;
+        color: #e2e8f0;
+        font-size: 0.88rem;
+    }
+
+    .settings-row:hover {
+        background: rgba(148, 163, 184, 0.18);
+    }
+
+    .settings-row.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .settings-left {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 600;
+    }
+
+    .settings-value {
+        color: #cbd5f5;
+        font-weight: 600;
+        font-size: 0.82rem;
+    }
+
+    .submenu {
+        display: none;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .submenu.show {
+        display: flex;
+    }
+
+    .submenu-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.6rem 0.35rem;
+        color: #f1f5f9;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .submenu-back {
+        border: 0;
+        background: transparent;
+        color: #cbd5f5;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .quality-option {
+        border: 0;
+        background: transparent;
+        color: #e2e8f0;
+        text-align: left;
+        padding: 0.5rem 0.65rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .quality-option:hover {
+        background: rgba(148, 163, 184, 0.2);
+    }
+
+    .quality-option.active {
+        background: rgba(99, 102, 241, 0.35);
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    #localVideo,
+    #externalFrame,
+    #ytPlayer {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        object-fit: contain;
+    }
+
+    .player-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        background: rgba(15, 23, 42, 0.94);
+        color: #ffffff;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .overlay-content {
+        max-width: 520px;
+    }
+
+    .course-info-card {
+        padding: 1.5rem 2rem;
+    }
+
+    .info-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: start;
+        margin-bottom: 1.25rem;
+    }
+
+    .info-text h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .info-text p {
+        margin: 0.3rem 0 0;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .meta-line {
+        margin-top: 0.9rem;
+        font-size: 0.9rem;
+        color: #475569;
+    }
+
+    .progress-shell {
+        margin-top: 1rem;
+    }
+
+    .progress-label-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.45rem;
+    }
+
+    .progress-track {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+    }
+
+    #progress-bar,
+    #course-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), #8b5cf6);
+        border-radius: 999px;
+        transition: width 0.25s ease;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.8rem 1.4rem;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+        opacity: 0.96;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: #ffffff;
+    }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: var(--dark);
+    }
+
+    .btn-primary[disabled],
+    .btn-secondary[disabled] {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none;
+    }
+
+    #playerStatus {
+        display: none;
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        font-weight: 600;
+    }
+
+    #playerStatus.success {
+        display: block;
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    #playerStatus.error {
+        display: block;
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    #theorySection {
+        padding: 3rem;
+    }
+
+    .theory-shell {
+        max-width: 820px;
+        margin: 0 auto;
+    }
+
+    .theory-kicker {
+        color: var(--primary);
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .theory-shell h1 {
+        margin: 0.5rem 0 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 4px solid #f1f5f9;
+    }
+
+    .theory-actions {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .sidebar-card {
+        position: sticky;
+        top: 100px;
+        overflow: hidden;
+    }
+
+    .sidebar-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        background: #f8fafc;
+    }
+
+    .sidebar-header h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .module-list {
+        padding: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .module-item {
+        display: flex;
+        gap: 0.9rem;
+        padding: 1rem;
+        border-radius: 12px;
+        text-decoration: none;
+        background: #f8fafc;
+        border: 1px solid transparent;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .module-item:hover {
+        background: #f1f5f9;
+        transform: translateX(3px);
+    }
+
+    .module-item.active {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+    }
+
+    .module-icon-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .module-icon-circle.theory {
+        background: #0ea5e9;
+        /* Sky blue for theory */
+    }
+
+    .module-icon-circle.quiz {
+        background: #8b5cf6;
+        /* Purple for quiz */
+    }
+
+    .module-icon-circle.assignment {
+        background: #6366f1;
+        /* Indigo for assignment */
+    }
+
+    .module-details h4 {
+        margin: 0;
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .module-meta {
+        margin-top: 0.2rem;
+        font-size: 0.78rem;
+        color: #94a3b8;
+    }
+
+    #quizOverlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .quiz-card {
+        background: #ffffff;
+        color: var(--dark);
+        width: min(100%, 560px);
+        border-radius: 24px;
+        padding: 2rem;
+        text-align: left;
+    }
+
+    .quiz-options {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 1.5rem;
+    }
+
+    .quiz-option {
+        width: 100%;
+        text-align: left;
+        border: 1px solid #dbeafe;
+        background: #f8fafc;
+        color: var(--dark);
+    }
+
+    .quiz-empty {
+        margin-top: 1rem;
+        color: #64748b;
+        font-size: 0.92rem;
+    }
+
+    @media (max-width: 1024px) {
+        .player-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .player-main-wrapper {
+            padding: 0 1rem;
+        }
+
+        .course-info-card,
+        #theorySection {
+            padding: 1.25rem;
+        }
+
+        .info-header {
+            flex-direction: column;
+        }
+
+        .theory-actions {
+            justify-content: stretch;
+        }
+
+        .theory-actions .btn-action {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="playerConfig" data-module-id="{{ module.id }}" data-update-progress-url="{% url 'update_progress_api' %}"
+    data-mark-complete-url="{% url 'mark_complete_api' module.id %}" data-submit-quiz-url="{% url 'submit_quiz_api' %}"
+    data-next-module-url="{{ next_module_url }}" data-csrf-token="{{ csrf_token }}"
+    data-is-locked="{{ is_locked|yesno:'true,false' }}" data-is-hls="{{ is_hls|yesno:'true,false' }}"
+    data-hls-src="{{ embed_url|default:'' }}" data-module-progress="{{ module_progress_percent }}"
+    data-course-progress="{{ course_progress_percent }}" data-completed-modules="{{ completed_modules_count }}"
+    data-total-modules="{{ total_modules_count }}"
+    data-quiz-required="{% if module.type == 'quiz' %}true{% else %}false{% endif %}"
+    data-quiz-id="{{ quiz_payload.id|default:'' }}" data-attempts-remaining="{{ attempts_remaining }}"
+    data-allow-seek="{{ allow_seek|yesno:'true,false' }}"
+    data-disable-fast-forward="{{ disable_fast_forward|yesno:'true,false' }}"
+    data-min-watch-percent="{{ min_watch_percent }}"
+    data-enable-checkpoints="{{ enable_checkpoints|yesno:'true,false' }}"
+    data-checkpoint-interval="{{ checkpoint_interval }}" data-fallback-src="{{ embed_url|default:'' }}"
+    data-dash-manifest="{% if module.dash_manifest %}/media/{{ module.dash_manifest }}{% endif %}">
+</div>
+
+{% if preview %}
+<div class="bg-yellow-100 text-yellow-800 p-3 rounded-lg mb-4" style="border:1px solid #fbbf24;">
+    <strong>Instructor Preview Mode:</strong> Progress and module locking are disabled in this view.
+</div>
+{% endif %}
+</div>
+{{ quiz_payload|json_script:"module-quiz-data" }}
+
+<div class="player-main-wrapper">
+    <div class="player-grid">
+        <div class="viewport-column">
+            {% if module.type == 'video' %}
+            <div class="video-container-diagnostic">
+                <video id="videoPlayer" controls style="width:100%; height:400px; background:black;"></video>
+
+                <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const video = document.getElementById("videoPlayer");
+                        const mpdUrl = "{% if module.dash_manifest %}/media/{{ module.dash_manifest }}{% endif %}";
+
+                        console.log("MPD URL:", mpdUrl);
+
+                        if (!mpdUrl) {
+                            console.error("MPD URL missing from database for this module.");
+                            return;
+                        }
+
+                        const player = dashjs.MediaPlayer().create();
+
+                        player.updateSettings({
+                            debug: { logLevel: dashjs.Debug.LOG_LEVEL_DEBUG },
+                            streaming: {
+                                abr: { autoSwitchBitrate: { video: true } }
+                            }
+                        });
+
+                        player.initialize(video, mpdUrl, true);
+
+                        player.on("error", function (e) {
+                            console.error("DASH ERROR:", e);
+                        });
+
+                        player.on("streamInitialized", function () {
+                            console.log("Stream initialized successfully. Tracks:", player.getTracksFor("video"));
+                        });
+                    });
+                </script>
+            </div>
+
+            <div id="lockOverlay" class="player-overlay" {% if is_locked %}style="display: flex;" {% endif %}>
+                <div class="overlay-content">
+                    <h2>Content Locked</h2>
+                    <p>{{ lock_reason|default:"Please complete earlier modules first." }}</p>
+                    <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}"
+                        class="btn-action btn-primary">Return to Syllabus</a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if module.type == 'quiz' %}
+            <div id="quizOverlay" class="player-overlay">
+                <div class="quiz-card">
+                    <h3 id="quizQuestion">Quiz</h3>
+                    <div id="quizOptions" class="quiz-options"></div>
+                    <div id="quizEmptyState" class="quiz-empty" style="display: none;">No quiz is configured for this
+                        module yet.</div>
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button type="button" id="submitQuiz" class="btn-action btn-primary">Submit Quiz</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if module.type == 'theory' %}
+            <section id="theorySection">
+                <div class="theory-shell">
+                    <span class="theory-kicker">Theory Module</span>
+                    <h1>{{ module.title|safe }}</h1>
+                    <div style="font-size: 1.05rem; line-height: 1.8; color: #334155;">
+                        {% if module.content %}
+                        {{ module.content|safe }}
+                        {% endif %}
+
+                        {% if module.file %}
+                        {% with file_name=module.file.name|lower %}
+                        {% if ".png" in file_name or ".jpg" in file_name or ".jpeg" in file_name or ".gif" in file_name or ".webp" in file_name %}
+                        <div
+                            style="margin-top: 2rem; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+                            <img src="{{ module.file.url }}" alt="Theory Illustration"
+                                style="width: 100%; height: auto; display: block;">
+                        </div>
+                        {% elif ".pdf" in file_name %}
+                        <div
+                            style="margin-top: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; color: #475569; background: #e2e8f0; padding: 0.35rem 0.6rem; border-radius: 999px;">PDF</span>
+                                <div>
+                                    <h4 style="margin: 0; color: #1e293b;">Reference Document</h4>
+                                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Download or view the
+                                        attached PDF</p>
+                                </div>
+                            </div>
+                            <a href="{{ module.file.url }}" target="_blank" class="btn-action btn-secondary"
+                                style="margin: 0;">Open PDF</a>
+                        </div>
+                        {% else %}
+                        <div
+                            style="margin-top: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h4 style="margin: 0; color: #1e293b;">Attachment</h4>
+                                <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Download the attached file</p>
+                            </div>
+                            <a href="{{ module.file.url }}" target="_blank" class="btn-action btn-secondary"
+                                style="margin: 0;">Download</a>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        {% endif %}
+
+                        {% if not module.content and not module.file %}
+                        Theory notes will appear here for this module.
+                        {% endif %}
+                    </div>
+                    <div class="theory-actions">
+                        <button id="completeBtn" type="button" class="btn-action btn-primary">Mark Complete &
+                            Continue</button>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% if module.type == 'assignment' %}
+            <section id="assignmentSection" style="background: white; border-radius: 16px; padding: 2.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                    <div>
+                        <span class="theory-kicker" style="color: #6366f1; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Assignment Module</span>
+                        <h1 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; font-weight: 800;">{{ module.title|safe }}</h1>
+                        <p style="color: #64748b;">Complete the task and submit your work for review.</p>
+                    </div>
+                    {% if submission %}
+                        {% if submission.status == 'approved' %}
+                            <span style="background: #ecfdf5; color: #059669; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #10b981;">● Approved</span>
+                        {% elif submission.status == 'rejected' %}
+                            <span style="background: #fef2f2; color: #dc2626; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #f87171;">● Rejected</span>
+                        {% else %}
+                            <span style="background: #fffbeb; color: #d97706; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #fbbf24;">● Pending Review</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 2.5rem;">
+                    {% if module.assignment_task_file %}
+                    <a href="{{ module.assignment_task_file.url }}" target="_blank" class="btn-action btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        View Task PDF
+                    </a>
+                    {% endif %}
+                    
+                    {% if submission and submission.feedback %}
+                    <button onclick="toggleFeedback()" class="btn-action btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fefce8; border: 1px solid #fef08a; color: #854d0e;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+                        View Feedback
+                    </button>
+                    {% endif %}
+                </div>
+
+                {% if not submission or submission.status != 'approved' %}
+                <div id="submissionForm" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1.1rem;">Submit Your Work</h3>
+                    <div style="display: grid; gap: 1.25rem;">
+                        <div class="form-group" style="margin: 0; display: block;">
+                            <label style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">GitHub Repository Link</label>
+                            <input type="url" id="githubLink" class="form-control" placeholder="https://github.com/username/repo" value="{{ submission.github_link|default:'' }}" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        </div>
+                        <div class="form-group" style="margin: 0; display: block;">
+                            <label style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">Google Drive Folder Link</label>
+                            <input type="url" id="googleDriveLink" class="form-control" placeholder="https://drive.google.com/..." value="{{ submission.google_drive_link|default:'' }}" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <button id="submitAssignmentBtn" onclick="submitAssignment()" class="btn-action btn-primary" style="width: 100%; justify-content: center; background: #4f46e5;">
+                                {% if submission %}Update Submission{% else %}Submit Assignment{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="background: #f0fdf4; border-radius: 12px; padding: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">✓</div>
+                    <div>
+                        <h4 style="margin: 0; color: #166534;">Assignment Approved</h4>
+                        <p style="margin: 0.2rem 0 0; color: #15803d; font-size: 0.9rem;">You have successfully completed this module.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Feedback Modal/Section -->
+                <div id="feedbackSection" style="display: none; margin-top: 1.5rem; background: #fefce8; border-radius: 12px; padding: 1.5rem; border: 1px solid #fef08a;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; color: #854d0e;">Teacher Feedback</h4>
+                        <button onclick="toggleFeedback()" style="background: transparent; border: none; cursor: pointer; color: #854d0e; font-size: 1.2rem;">✕</button>
+                    </div>
+                    <div style="color: #92400e; font-style: italic; line-height: 1.6;">
+                        {{ submission.feedback|linebreaks }}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <div class="course-info-card">
+                <div class="info-header">
+                    <div class="info-text">
+                        <h1>{{ module.title|safe }}</h1>
+                        <p>{{ module.course.title|safe }}</p>
+                        <div class="meta-line">
+                            Module Type: {{ module.get_type_display }}
+                        </div>
+                    </div>
+                    <div class="action-group">
+                        {% if module.type == 'video' %}
+                        <button id="completeBtn" type="button" class="btn-action btn-primary"
+                            style="background: linear-gradient(135deg, #16a34a, #15803d); border-color: #16a34a;">Mark
+                            Complete &amp; Continue</button>
+                        {% elif module.type == 'quiz' %}
+                        <button id="quizBtn" type="button" class="btn-action btn-primary" style="display: none;">Take
+                            Quiz</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="progress-shell">
+                    <div class="progress-label-row">
+                        <span>Module Progress</span>
+                        <span id="progressPercent">{{ module_progress_percent }}%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="progress-bar" style="width: {{ module_progress_percent }}%;"></div>
+                    </div>
+                </div>
+
+                <div id="playerStatus"></div>
+            </div>
+        </div>
+
+        <aside class="sidebar-card">
+            <div class="sidebar-header">
+                <h2>Lesson Resources</h2>
+                <div class="progress-shell">
+                    <div class="progress-label-row">
+                        <span>Course Progress</span>
+                        <span id="courseProgressPercent">{{ course_progress_percent }}%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div id="course-progress-bar" style="width: {{ course_progress_percent }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="module-list">
+                {% for m in all_modules %}
+                <a href="{% url 'video_player' m.id %}" class="module-item {% if m.id == module.id %}active{% endif %}">
+                    <div
+                        class="module-icon-circle {% if m.type == 'theory' %}theory{% elif m.type == 'quiz' %}quiz{% elif m.type == 'assignment' %}assignment{% endif %}">
+                        {% if m.type == 'video' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                            </path>
+                            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {% elif m.type == 'theory' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                            </path>
+                        </svg>
+                        {% elif m.type == 'quiz' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                            </path>
+                        </svg>
+                        {% elif m.type == 'assignment' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="module-details">
+                        <h4>{{ m.title|safe }}</h4>
+                        <div class="module-meta">{{ m.get_type_display }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if dash_manifest %}
+<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+{% endif %}
+{% if is_hls %}
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+{% endif %}
+<script src="{% static 'student/quiz_player.js' %}"></script>
+
+<script>
+    function toggleFeedback() {
+        const section = document.getElementById('feedbackSection');
+        if (section) {
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    async function submitAssignment() {
+        const moduleId = "{{ module.id }}";
+        const githubLink = document.getElementById('githubLink').value;
+        const googleDriveLink = document.getElementById('googleDriveLink').value;
+        const btn = document.getElementById('submitAssignmentBtn');
+        const statusDiv = document.getElementById('playerStatus');
+
+        if (!githubLink && !googleDriveLink) {
+            alert('Please provide at least one link (GitHub or Google Drive).');
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.innerText = 'Submitting...'; }
+
+        try {
+            const response = await fetch("{% url 'submit_assignment_api' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    module_id: moduleId,
+                    github_link: githubLink,
+                    google_drive_link: googleDriveLink
+                })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                if(statusDiv) {
+                    statusDiv.innerText = data.message;
+                    statusDiv.className = 'playerStatus success';
+                    statusDiv.style.display = 'block';
+                }
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                if(statusDiv) {
+                    statusDiv.innerText = data.message;
+                    statusDiv.className = 'playerStatus error';
+                    statusDiv.style.display = 'block';
+                }
+                if(btn) { btn.disabled = false; btn.innerText = 'Try Again'; }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            if(btn) { btn.disabled = false; btn.innerText = 'Submit Assignment'; }
+        }
+    }
+</script>
+{% endblock %}

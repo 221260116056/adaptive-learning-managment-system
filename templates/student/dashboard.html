@@ -1,0 +1,88 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<div class="dashboard-container" style="padding: 2rem;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: var(--dark);">{{ welcome_msg }}</h1>
+        <p style="color: #64748b;">Track your progress and continue where you left off.</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+        <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 44px; height: 44px; background: #eef2ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary);">📚</div>
+                <h3 style="margin: 0; font-size: 1rem; color: #64748b;">Enrolled Courses</h3>
+            </div>
+            <p style="font-size: 2.25rem; font-weight: 800; color: var(--dark); margin: 0;">{{ enrolled_courses|length }}</p>
+        </div>
+
+        <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 44px; height: 44px; background: #f0fdf4; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--success);">✅</div>
+                <h3 style="margin: 0; font-size: 1rem; color: #64748b;">Completed Modules</h3>
+            </div>
+            <p style="font-size: 2.25rem; font-weight: 800; color: var(--success); margin: 0;">{{ total_completed_modules }}</p>
+        </div>
+    </div>
+
+    <!-- My Courses Section -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0;">Continue Learning</h2>
+        <a href="{% url 'my_courses' %}" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.9rem;">View All Courses</a>
+    </div>
+
+    <div class="courses-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 4rem;">
+        {% for course in enrolled_courses %}
+        <div class="course-card" style="background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9;">
+            {% if course.thumbnail_url %}
+            <img src="{{ course.thumbnail_url }}" alt="{{ course.fullname }} thumbnail" style="width: 100%; height: 160px; object-fit: cover;" />
+            {% else %}
+            <div style="height: 160px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white;">
+                <span style="font-size: 3rem; opacity: 0.2;">🎓</span>
+            </div>
+            {% endif %}
+            <div style="padding: 1.5rem;">
+                <p style="margin: 0; color: var(--primary); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ course.shortname }}</p>
+                <h3 style="margin: 0.5rem 0 1.5rem; font-size: 1.15rem; font-weight: 800; color: var(--dark); min-height: 2.8rem;">{{ course.fullname }}</h3>
+                
+                <!-- Progress Bar -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        <span style="color: #64748b;">Progress</span>
+                        <span style="color: var(--dark);">{{ course.progress }}%</span>
+                    </div>
+                    <div style="height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                        <div style="width: {{ course.progress }}%; height: 100%; background: linear-gradient(to right, var(--primary), #a78bfa); border-radius: 4px; transition: width 0.5s ease;"></div>
+                    </div>
+                </div>
+
+                <a href="{% url 'player_course' course.id %}" style="display: block; text-align: center; padding: 0.75rem; background: var(--dark); color: white; border-radius: 12px; text-decoration: none; font-weight: 700; transition: transform 0.2s;">
+                    {% if course.progress == 100 %}Review Course{% else %}Continue Learning{% endif %}
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 16px; padding: 4rem; text-align: center;">
+            <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 1.1rem;">You aren't enrolled in any courses yet.</p>
+            <a href="{% url 'explore' %}" style="background: var(--primary); color: white; padding: 0.75rem 2rem; border-radius: 12px; text-decoration: none; font-weight: 700;">Explore Courses</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Explore Section -->
+    <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 0;">Recommended For You</h2>
+    </div>
+    <div class="explore-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+        {% for course in explore_courses %}
+        <div class="explore-card" style="background: #f8fafc; border-radius: 16px; padding: 1.25rem; border: 1px solid #f1f5f9;">
+            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700; color: var(--dark);">{{ course.title }}</h4>
+            <p style="margin: 0 0 1rem; color: #64748b; font-size: 0.85rem; line-height: 1.5;">{{ course.description|striptags|truncatewords:12 }}</p>
+            <a href="{% url 'enroll_course' course.id %}" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.85rem;">Enrol Now →</a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Audit Logs{% endblock %}
+{% block page_title %}Audit Logs{% endblock %}
+{% block page_subtitle %}Trace administrative actions and system events{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="toolbar">
+        <h3 style="margin: 0;">Security Event Stream</h3>
+        <form method="get" class="filters">
+            <input type="text" name="q" placeholder="Search email, action, details" value="{{ query }}">
+            <input type="date" name="date" value="{{ date_filter }}">
+            <button class="btn secondary" type="submit">Apply</button>
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.user.email|default:log.user.username }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details|default:'-' }}</td>
+                <td>{{ log.timestamp|date:"M d, Y H:i:s" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty">No matching audit records found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

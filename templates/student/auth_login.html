@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    body{margin:0;background:linear-gradient(135deg,#eef4ff 0%,#f7f2ff 100%);min-height:100vh;display:flex;flex-direction:column;font-family:'Inter',sans-serif}
+    .content{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+    .auth-shell{display:flex;max-width:980px;width:92%;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 24px 60px rgba(79,70,229,.12);min-height:560px}
+    .auth-left{flex:1;background:linear-gradient(180deg,#6a7bf7 0%,#6f49b9 100%);padding:3rem;color:#fff;display:flex;flex-direction:column}
+    .auth-right{flex:1;padding:3rem;background:#fff;display:flex;flex-direction:column;justify-content:center}
+    .brand{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem}.badge{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-weight:800;font-size:1.4rem}
+    .brand-text strong{display:block;font-size:1.6rem}.brand-text span{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;opacity:.88}
+    .auth-title{font-size:2.3rem;font-weight:800;margin:0 0 1rem}.auth-subtitle{font-size:1rem;line-height:1.7;opacity:.92;margin-bottom:2rem}
+    .mode-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.16);font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1rem}
+    .feature-list{list-style:none;padding:0;margin:auto 0 0}.feature-list li{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem}.feature-list li:before{content:'+';width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.18);display:inline-flex;align-items:center;justify-content:center;font-weight:800}
+    .form-title{font-size:1.75rem;font-weight:800;color:#1f2937;margin:0 0 .35rem}.form-subtitle{font-size:.95rem;color:#64748b;margin:0 0 1.5rem}.auth-right form p{margin-bottom:1rem;text-align:left}.auth-right form label{display:block;font-size:.82rem;font-weight:700;color:#334155;margin-bottom:.35rem}
+    .auth-right form input[type="text"],.auth-right form input[type="email"],.auth-right form input[type="password"]{width:100%;padding:.9rem 1rem;border:1px solid #dbe2ea;border-radius:12px;outline:none;font-family:inherit;box-sizing:border-box}
+    .auth-right form input:focus{border-color:#6a7bf7}.btn-submit{display:block;width:100%;padding:.95rem;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;margin-top:1rem}
+    .auth-footer{text-align:center;font-size:.92rem;color:#64748b;margin-top:1.5rem}.auth-footer a{color:#6a7bf7;font-weight:700;text-decoration:none}
+    .helper-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:.86rem;color:#64748b}
+    ul.errorlist{color:#dc2626;font-size:.82rem;margin:0 0 .45rem;padding:0 0 0 1rem}.helptext,.auth-right form ul:not(.errorlist){display:none!important}
+    @media (max-width:850px){.auth-shell{flex-direction:column;min-height:auto;width:95%;margin:1rem auto}.auth-left{padding:2rem}.auth-right{padding:2rem}.auth-title{font-size:1.8rem}.brand{margin-bottom:1rem}}
+</style>
+
+<div class="auth-shell">
+    <div class="auth-left">
+        <div class="brand">
+            <div class="badge">AL</div>
+            <div class="brand-text">
+                <strong>Adaptive</strong>
+                <span>Learning LMS</span>
+            </div>
+        </div>
+        <div class="mode-badge">Unified sign in</div>
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-subtitle">Use one login system and we will route you automatically to the correct dashboard based on your role.</p>
+    </div>
+
+    <div class="auth-right">
+        <h2 class="form-title">Login</h2>
+        <p class="form-subtitle">Enter your credentials. Role is detected automatically after sign in.</p>
+        {% if messages %}
+        <div class="messages" style="margin-bottom: 1rem;">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; {% if message.tags == 'error' %}background: #fee2e2; color: #dc2626;{% elif message.tags == 'success' %}background: #d1fae5; color: #059669;{% else %}background: #e0f2fe; color: #0369a1;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="helper-row">
+                <span>Auto role detection enabled</span>
+                <span>Secure session routing</span>
+            </div>
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+        <div class="auth-footer">Don't have an account? <a href="{% url 'signup' %}">Create Account</a></div>
+    </div>
+</div>
+{% endblock %}

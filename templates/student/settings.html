@@ -1,0 +1,97 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+{% if messages %}
+<div style="max-width: 700px; margin: 0 auto; margin-bottom: 2rem;">
+    {% for message in messages %}
+    <div style="padding: 1rem; border-radius: 8px; margin-bottom: 1rem;
+        {% if message.tags == 'success' %}background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;{% endif %}
+        {% if message.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="settings-container" style="max-width: 700px; margin: 0 auto;">
+    <h1 style="margin-bottom: 0.5rem;">Account Settings</h1>
+    <p style="color: #64748b; margin-bottom: 2.5rem;">Manage your account preferences and security settings.</p>
+
+    <div style="display: grid; gap: 2rem;">
+        <!-- Profile Settings -->
+        <div
+            style="background: white; border-radius: 16px; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                {% if profile.profile_image %}
+                    <img src="{{ profile.profile_image.url }}" alt="Profile photo" style="width:32px;height:32px;border-radius:8px;object-fit:cover;" />
+                {% else %}
+                    <span style="background: #eff6ff; padding: 0.5rem; border-radius: 8px;">👤</span>
+                {% endif %}
+                General Profile
+            </h3>
+            <form method="POST" enctype="multipart/form-data" style="display: grid; gap: 1.5rem;">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">First
+                            Name</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}"
+                            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Last
+                            Name</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}"
+                            style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Email
+                        Address</label>
+                    <input type="email" value="{{ user.email }}"
+                        style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;"
+                        readonly class="bg-gray-100 cursor-not-allowed">
+                    <p style="font-size:12px; color:gray; margin-top: 0.5rem;">
+                        Email cannot be changed. Contact admin if needed.
+                    </p>
+                </div>
+                <div>
+                    <label for="photo" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Profile Photo</label>
+                    <input type="file" name="photo" id="photo" accept="image/*"
+                        style="width: 100%; padding: 0.5rem 0;">
+                    {% if profile.profile_image %}
+                        <p style="margin: 0.25rem 0 0; font-size: 0.8rem; color: #64748b;">Current image: {{ profile.profile_image.name }}</p>
+                    {% endif %}
+                </div>
+                <button type="submit" style="background: var(--primary); color: white; padding: 0.75rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">Save Changes</button>
+            </form>
+        </div>
+
+        <!-- Security Settings -->
+        <div
+            style="background: white; border-radius: 16px; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="background: #fef2f2; padding: 0.5rem; border-radius: 8px;">🔒</span>
+                Security & Password
+            </h3>
+            <form method="POST" action="{% url 'change_password' %}" style="display: grid; gap: 1.5rem;">
+                {% csrf_token %}
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Current Password</label>
+                    <input type="password" name="old_password" required
+                        style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">New Password</label>
+                    <input type="password" name="new_password" required
+                        style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;">
+                </div>
+                <button type="submit"
+                    style="background: var(--primary); color: white; padding: 0.75rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
+                    Change Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

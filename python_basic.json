@@ -1,0 +1,64 @@
+{
+  "id": 33,
+  "url": "http://localhost/moodle/mod/page/view.php?id=33",
+  "name": "python basic",
+  "instance": 5,
+  "contextid": 58,
+  "visible": 1,
+  "uservisible": true,
+  "visibleoncoursepage": 1,
+  "modicon": "http://localhost/moodle/theme/image.php/boost/page/1769687437/monologo?filtericon=1",
+  "modname": "page",
+  "purpose": "content",
+  "branded": false,
+  "modplural": "Pages",
+  "availability": null,
+  "indent": 0,
+  "onclick": "",
+  "afterlink": null,
+  "customdata": "\"\"",
+  "noviewlink": false,
+  "completion": 0,
+  "downloadcontent": 1,
+  "dates": [],
+  "groupmode": 0,
+  "contents": [
+    {
+      "type": "file",
+      "filename": "python basic.mp4",
+      "filepath": "/",
+      "filesize": 1831900,
+      "fileurl": "http://localhost/moodle/webservice/pluginfile.php/58/mod_page/content/1/python%20basic.mp4?forcedownload=1",
+      "timecreated": 1773305651,
+      "timemodified": 1773305780,
+      "sortorder": 0,
+      "mimetype": "video/mp4",
+      "isexternalfile": false,
+      "userid": 2,
+      "author": "admin admin",
+      "license": "unknown"
+    },
+    {
+      "type": "file",
+      "filename": "index.html",
+      "filepath": "/",
+      "filesize": 0,
+      "fileurl": "http://localhost/moodle/webservice/pluginfile.php/58/mod_page/content/index.html?forcedownload=1",
+      "timecreated": null,
+      "timemodified": 1773305780,
+      "sortorder": 1,
+      "userid": null,
+      "author": null,
+      "license": null
+    }
+  ],
+  "contentsinfo": {
+    "filescount": 2,
+    "filessize": 1831900,
+    "lastmodified": 1773305780,
+    "mimetypes": [
+      "video/mp4"
+    ],
+    "repositorytype": ""
+  }
+}

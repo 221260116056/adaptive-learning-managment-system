@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        background: linear-gradient(135deg, #a3bded 0%, #6991c7 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-container {
+        display: flex;
+        max-width: 900px;
+        width: 90%;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        min-height: 500px;
+    }
+
+    .auth-left {
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        padding: 3rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .auth-right {
+        flex: 1;
+        padding: 4rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: white;
+    }
+
+    .auth-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    .auth-logo svg {
+        width: 32px;
+        height: 32px;
+        filter: brightness(0) invert(1);
+    }
+
+    .auth-logo span {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .auth-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        margin-top: 0;
+    }
+
+    .auth-subtitle {
+        font-size: 1rem;
+        line-height: 1.6;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .auth-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        margin-top: auto;
+    }
+
+    .auth-features li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .auth-features li::before {
+        content: '✓';
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        font-size: 0.7rem;
+    }
+
+    .role-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .role-subtitle {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin: 0 0 2.5rem 0;
+    }
+
+    .role-group {
+        margin-bottom: 2rem;
+    }
+
+    .role-group-label {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        margin-bottom: 0.75rem;
+        transition: opacity 0.2s;
+        box-sizing: border-box;
+    }
+
+    .btn-primary:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    .btn-secondary {
+        display: block;
+        width: 100%;
+        padding: 0.8rem;
+        background: white;
+        color: var(--dark);
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.2s;
+        box-sizing: border-box;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        color: var(--dark);
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-left">
+        <div class="auth-logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M15 70 C 30 70, 45 80, 50 88 C 55 80, 70 70, 85 70 L 85 35 C 70 35, 55 45, 50 50 C 45 45, 30 35, 15 35 Z"
+                    fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round" />
+                <path d="M50 88 L 50 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+                <path d="M25 68 C 35 68, 45 75, 45 80" fill="none" stroke="currentColor" stroke-width="4"
+                    stroke-linecap="round" />
+                <path d="M75 68 C 65 68, 55 75, 55 80" fill="none" stroke="currentColor" stroke-width="4"
+                    stroke-linecap="round" />
+                <path d="M50 50 C 30 20, 10 50, 40 60" fill="none" stroke="currentColor" stroke-width="5"
+                    stroke-linecap="round" />
+                <path d="M50 50 C 70 20, 90 50, 60 60" fill="none" stroke="currentColor" stroke-width="5"
+                    stroke-linecap="round" />
+                <circle cx="50" cy="18" r="7" fill="currentColor" />
+                <circle cx="30" cy="28" r="5" fill="currentColor" />
+                <circle cx="70" cy="28" r="5" fill="currentColor" />
+            </svg>
+            <span>Adaptive Learning MS</span>
+        </div>
+        <h1 class="auth-title">Welcome</h1>
+        <p class="auth-subtitle">Choose how you want to use the platform. Sign in or create an account as a student or
+            instructor.</p>
+
+        <ul class="auth-features">
+            <li>Secure & Encrypted</li>
+            <li>Track Learning Progress</li>
+            <li>Earn Certificates</li>
+        </ul>
+    </div>
+
+    <div class="auth-right">
+        <h2 class="role-title">Continue as</h2>
+        <p class="role-subtitle">Select your role to sign in or sign up</p>
+
+        <div class="role-group">
+            <div class="role-group-label">Student</div>
+            <a href="{% url 'student_login' %}" class="btn-primary">Sign in as Student</a>
+            <a href="{% url 'student_signup' %}" class="btn-secondary">Create student account</a>
+        </div>
+
+        <div class="role-group" style="margin-bottom: 0;">
+            <div class="role-group-label">Instructor</div>
+            <a href="{% url 'teacher_login' %}" class="btn-primary">Sign in as Instructor</a>
+            <a href="{% url 'teacher_signup' %}" class="btn-secondary">Create instructor account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

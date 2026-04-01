@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div
+    style="max-width: 600px; margin: 4rem auto; text-align: center; background: white; padding: 3rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
+    <h1 style="color: var(--danger);">Access Denied</h1>
+    <p style="color: #666; font-size: 1.1rem; line-height: 1.6;">
+        You do not have permission to access this module yet. Please ensure you have completed all previous requirements
+        and are properly enrolled.
+    </p>
+    <div style="margin-top: 2rem;">
+        <a href="{% url 'dashboard' %}"
+            style="background: var(--primary); color: white; padding: 0.8rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

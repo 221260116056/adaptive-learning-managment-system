@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Teacher Panel{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --dark: #1a1a2e;
+            --light: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .content {
+            min-height: calc(100vh - 80px);
+        }
+
+        .footer {
+            background: #15182f;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% block navbar %}{% endblock %}
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+    {% block footer %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

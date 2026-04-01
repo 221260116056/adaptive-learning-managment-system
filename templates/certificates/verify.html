@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate Verification</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: "Inter", Arial, sans-serif;
+    background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+    color: #1e293b;
+}
+
+/* container */
+.verify-shell {
+    max-width: 700px;
+    margin: 60px auto;
+    background: white;
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+}
+
+/* badge */
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* title */
+h1 {
+    margin: 0 0 20px;
+    font-size: 28px;
+    color: #312e81;
+}
+
+/* rows */
+.meta-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: #475569;
+}
+
+.meta-value {
+    font-weight: 500;
+    color: #111827;
+}
+</style>
+</head>
+
+<body>
+
+<div class="verify-shell">
+
+    <div class="badge">VALID CERTIFICATE</div>
+
+    <h1>Certificate Verification</h1>
+
+    <div class="meta-row">
+        <div class="meta-label">Learner</div>
+        <div class="meta-value">
+            {{ certificate.user.get_full_name|default:certificate.user.username }}
+        </div>
+    </div>
+
+    <div class="meta-row">
+        <div class="meta-label">Course</div>
+        <div class="meta-value">{{ certificate.course.title }}</div>
+    </div>
+
+    <div class="meta-row">
+        <div class="meta-label">Issue Date</div>
+        <div class="meta-value">
+            {{ certificate.issued_at|date:"F j, Y" }}
+        </div>
+    </div>
+
+    <div class="meta-row">
+        <div class="meta-label">Certificate ID</div>
+        <div class="meta-value">{{ certificate.certificate_id }}</div>
+    </div>
+
+    <div class="meta-row" style="border-bottom: none;">
+        <div class="meta-label">Verification Token</div>
+        <div class="meta-value">{{ certificate.verification_token }}</div>
+    </div>
+
+</div>
+
+</body>
+</html>

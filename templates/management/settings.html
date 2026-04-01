@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div style="display: flex;">
+    {% include 'management/sidebar.html' %}
+    <div style="margin-left: 260px; padding: 2.5rem; width: 100%; background: #f8fafc; min-height: 100vh;">
+        <div style="max-width: 860px; background: white; border-radius: 20px; padding: 2rem; border: 1px solid #e2e8f0;">
+            <h1 style="margin-top: 0;">Platform Settings</h1>
+            <p style="color: #64748b;">Configure token policy, signer identity, video host, and audit exports.</p>
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Video Host</label>
+                        <input type="text" name="video_host" value="{{ config.video_host }}" style="width: 100%; padding: 0.8rem; border: 1px solid #dbe2ea; border-radius: 12px;">
+                    </div>
+                    <div>
+                        <label>Certificate Signer</label>
+                        <input type="text" name="certificate_signer" value="{{ config.certificate_signer }}" style="width: 100%; padding: 0.8rem; border: 1px solid #dbe2ea; border-radius: 12px;">
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label>Signed URL Secret</label>
+                    <input type="text" name="signed_url_secret" value="{{ config.signed_url_secret }}" style="width: 100%; padding: 0.8rem; border: 1px solid #dbe2ea; border-radius: 12px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <label>Token TTL (seconds)</label>
+                        <input type="number" name="token_ttl_seconds" value="{{ config.token_ttl_seconds }}" style="width: 100%; padding: 0.8rem; border: 1px solid #dbe2ea; border-radius: 12px;">
+                    </div>
+                    <div>
+                        <label>SIEM Endpoint</label>
+                        <input type="url" name="siem_endpoint" value="{{ config.siem_endpoint }}" style="width: 100%; padding: 0.8rem; border: 1px solid #dbe2ea; border-radius: 12px;">
+                    </div>
+                </div>
+                <div style="display: grid; gap: 0.75rem; margin-top: 1rem;">
+                    <label><input type="checkbox" name="attention_monitoring_enabled" {% if config.attention_monitoring_enabled %}checked{% endif %}> Enable attention monitoring</label>
+                    <label><input type="checkbox" name="blockchain_anchor_enabled" {% if config.blockchain_anchor_enabled %}checked{% endif %}> Enable blockchain anchoring flag</label>
+                </div>
+                <button type="submit" style="margin-top: 1.5rem; padding: 0.9rem 1.4rem; border: none; border-radius: 12px; background: #667eea; color: white; font-weight: 700;">Save Settings</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

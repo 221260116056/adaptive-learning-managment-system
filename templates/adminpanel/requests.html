@@ -1,0 +1,49 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Teacher Requests{% endblock %}
+{% block page_title %}Teacher Approval Requests{% endblock %}
+{% block page_subtitle %}Review pending instructor access requests{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if pending_profiles %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in pending_profiles %}
+            <tr>
+                <td>{{ profile.user.get_full_name|default:profile.user.username }}</td>
+                <td>{{ profile.user.email|default:profile.user.username }}</td>
+                <td>{{ profile.user.date_joined|date:"M d, Y H:i" }}</td>
+                <td>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                            <input type="hidden" name="decision" value="approve">
+                            <button class="btn success" type="submit">Approve</button>
+                        </form>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                            <input type="hidden" name="decision" value="reject">
+                            <button class="btn danger" type="submit">Reject</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No pending teacher approval requests right now.</div>
+    {% endif %}
+</div>
+{% endblock %}

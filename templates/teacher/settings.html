@@ -1,0 +1,222 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Instructor Settings | LearnTrust{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for teacher pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .settings-card {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .avatar-large {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        border: 4px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .avatar-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .toggle-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-top: 2rem;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #cbd5e1;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px; width: 18px;
+        left: 3px; bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="settings-card">
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 2.5rem;">Instructor Profile Management</h2>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="profile-header">
+                        <div class="avatar-large">
+                            {% if profile.profile_image %}
+                            <img src="{{ profile.profile_image.url }}" alt="Profile">
+                            {% else %}
+                            👤
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="profile_image" style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Profile Photo</label>
+                            <input type="file" name="profile_image" id="profile_image" style="font-size: 0.85rem;">
+                            <p style="margin: 0.5rem 0 0; color: #64748b; font-size: 0.8rem;">PNG, JPG or WEBP. Max 2MB.</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" name="first_name" value="{{ request.user.first_name }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" value="{{ request.user.last_name }}" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" value="{{ request.user.email }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Expertise</label>
+                            <input type="text" name="expertise" value="{{ profile.expertise }}" class="form-control" placeholder="e.g. Data Science, UI/UX Design">
+                        </div>
+                    </div>
+
+                    <div class="toggle-section">
+                        <div>
+                            <h4 style="margin: 0; font-size: 1rem;">Enable Auto Sync with Moodle</h4>
+                            <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.85rem;">Automatically push your course changes to the Moodle LMS.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" name="auto_sync" {% if profile.auto_sync_enabled %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 3rem; text-align: right;">
+                        <button type="submit" class="btn-submit" style="background: var(--dark); border-radius: 12px; padding: 1rem 3rem; color: white; border: none; font-weight: 700; cursor: pointer;">Save Profile Changes</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

@@ -1,0 +1,24 @@
+=== RECENT VIDEO MODULES ===
+id=61 title='basic' vfile=True(exists:True) dash=True(exists:True) video_url='NO_FIELD'
+id=60 title='basic' vfile=True(exists:True) dash=True(exists:True) video_url='NO_FIELD'
+id=52 title='java 2' vfile=True(exists:True) dash=True(exists:True) video_url='NO_FIELD'
+id=51 title='java 1' vfile=True(exists:True) dash=True(exists:True) video_url='NO_FIELD'
+id=43 title='OOP &amp; Project Guide' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+id=42 title='Mini Project Explanation' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+id=41 title='Classes and Objects in Python' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+id=40 title='Object-Oriented Programming in Python' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+id=39 title='– Functions, Files &amp; Errors' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+id=38 title='Error Handling' vfile=False(exists:False) dash=False(exists:False) video_url='NO_FIELD'
+
+=== DETAIL FOR MODULE 61 ===
+title: basic
+type: video
+video_file: 'videos/raw/856787-hd_1920_1080_30fps_-_Copy_E4MexiR.mp4'
+video_file.path: C:\Python Vraj\Adaptive Learning management system\media\videos\raw\856787-hd_1920_1080_30fps_-_Copy_E4MexiR.mp4
+video_file.url: /media/videos/raw/856787-hd_1920_1080_30fps_-_Copy_E4MexiR.mp4
+file exists on disk: True
+dash_manifest: 'videos/dash/module_61/manifest.mpd'
+course.teacher_id: 2
+
+=== DETAIL FOR MODULE 59 ===
+Module 59 NOT FOUND

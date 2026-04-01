@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Adaptive Learning MS{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --dark: #1a1a2e;
+            --light: #f3f4f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .navbar {
+            background: var(--white);
+            color: var(--dark);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-main {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex: 1 1 520px;
+            min-width: 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link.role-link {
+            color: var(--secondary);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .search-container {
+            flex: 1 1 320px;
+            max-width: 480px;
+            position: relative;
+            margin: 0;
+            min-width: 220px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .action-icon {
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .action-icon:hover {
+            color: var(--primary);
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .user-profile-trigger:hover {
+            background: #f1f5f9;
+        }
+
+        .user-name-display {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Dropdown Menu */
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 240px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-dropdown.active {
+            display: flex;
+        }
+
+        .dropdown-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+
+        .dropdown-user-name {
+            font-weight: 700;
+            color: var(--dark);
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .dropdown-user-role {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin: 0.2rem 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dropdown-section {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dropdown-section:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.25rem;
+            color: var(--dark);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .dropdown-item.logout {
+            color: var(--danger);
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fff1f2;
+            color: var(--danger);
+        }
+
+        .content {
+            padding: 2rem;
+            min-height: calc(100vh - 160px);
+        }
+
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .navbar {
+                padding: 0.9rem 1.25rem;
+            }
+
+            .navbar-main {
+                gap: 1rem;
+                flex-basis: 100%;
+            }
+
+            .nav-links {
+                gap: 0.9rem;
+            }
+
+            .search-container {
+                order: 3;
+                flex-basis: 100%;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .navbar-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                width: 100%;
+            }
+
+            .navbar-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .content {
+                padding: 1.25rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    {% block navbar %}
+    <nav class="navbar">
+        <div class="navbar-main">
+            <a href="/" class="navbar-brand"
+                style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none;">
+                <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--primary)" />
+                            <stop offset="100%" stop-color="var(--secondary)" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Book Outline -->
+                    <path
+                        d="M15 70 C 30 70, 45 80, 50 88 C 55 80, 70 70, 85 70 L 85 35 C 70 35, 55 45, 50 50 C 45 45, 30 35, 15 35 Z"
+                        fill="none" stroke="url(#logoGrad)" stroke-width="6" stroke-linejoin="round" />
+                    <!-- Center binding -->
+                    <path d="M50 88 L 50 50" fill="none" stroke="url(#logoGrad)" stroke-width="6"
+                        stroke-linecap="round" />
+                    <!-- Inner pages / lines -->
+                    <path d="M25 68 C 35 68, 45 75, 45 80" fill="none" stroke="var(--primary)" stroke-width="4"
+                        stroke-linecap="round" />
+                    <path d="M75 68 C 65 68, 55 75, 55 80" fill="none" stroke="var(--secondary)" stroke-width="4"
+                        stroke-linecap="round" />
+
+                    <!-- Abstract Sprout / People leaves -->
+                    <path d="M50 50 C 30 20, 10 50, 40 60" fill="none" stroke="var(--success)" stroke-width="5"
+                        stroke-linecap="round" />
+                    <path d="M50 50 C 70 20, 90 50, 60 60" fill="none" stroke="var(--primary)" stroke-width="5"
+                        stroke-linecap="round" />
+
+                    <!-- Top Dots -->
+                    <circle cx="50" cy="18" r="7" fill="var(--secondary)" />
+                    <circle cx="30" cy="28" r="5" fill="var(--success)" />
+                    <circle cx="70" cy="28" r="5" fill="url(#logoGrad)" />
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <span
+                        style="font-size: 1.25rem; font-weight: 800; color: var(--primary); line-height: 1; letter-spacing: -0.5px;">Adaptive</span>
+                    <span
+                        style="font-size: 0.65rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Learning
+                        MS</span>
+                </div>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                {% if request.user.studentprofile.role == 'teacher' %}
+                <a href="{% url 'teacher:dashboard' %}" class="nav-link role-link">Teacher Panel</a>
+                {% elif request.user.studentprofile.role == 'admin' %}
+                <a href="{% url 'management:dashboard' %}" class="nav-link role-link" style="color: var(--dark);">Admin Panel</a>
+                {% endif %}
+                <a href="{% url 'my_courses' %}" class="nav-link">My Courses</a>
+                <a href="{% url 'explore' %}" class="nav-link">Explore</a>
+                <a href="{% url 'certificates' %}" class="nav-link">Certificates</a>
+            </div>
+        </div>
+
+        <form action="{% url 'explore' %}" method="get" class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="q" class="search-input" placeholder="Search for courses..."
+                value="{{ request.GET.q }}">
+        </form>
+
+        <div class="navbar-actions">
+            <a href="{% url 'notifications' %}" class="action-icon" style="text-decoration: none;">🔔</a>
+            <div class="user-profile-trigger" id="profileTrigger">
+                <span class="user-name-display">{{ request.user.username }} ▼</span>
+                <span class="action-icon">👤</span>
+
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <p class="dropdown-user-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+                        <p class="dropdown-user-role">{{ request.user.studentprofile.role|default:"Student"|title }}</p>
+                    </div>
+                    <div class="dropdown-section">
+                        {% if request.user.studentprofile.role == 'teacher' %}
+                        <a href="{% url 'teacher:dashboard' %}" class="dropdown-item">Teacher Dashboard</a>
+                        {% elif request.user.studentprofile.role == 'admin' %}
+                        <a href="{% url 'management:dashboard' %}" class="dropdown-item">Admin Dashboard</a>
+                        {% endif %}
+                        <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+                        <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+                    </div>
+                    <div class="dropdown-section">
+                        <a href="{% url 'logout' %}" class="dropdown-item logout">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer class="footer">
+        &copy; 2026 alms - Adaptive Learning Management System. Cryptographically Enforced.
+    </footer>
+    {% endblock %}
+
+    <script>
+        document.getElementById('profileTrigger').addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('active');
+        });
+
+        document.addEventListener('click', function () {
+            document.getElementById('profileDropdown').classList.remove('active');
+        });
+
+        document.getElementById('profileDropdown').addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnTrust</title>
+    <style>
+        :root { --bg:#eef4fb; --surface:#ffffff; --text:#1b1d3b; --muted:#4e6786; --line:#d9e3f0; --primary:#6a7bf7; --primary-dark:#6f49b9; --blue:#3478f6; --green:#11c57c; --amber:#f5a300; --footer:#20203b; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:Arial,sans-serif; color:var(--text); background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%); }
+        .container { width:min(1460px,calc(100% - 80px)); margin:0 auto; }
+        .site-header { background:rgba(255,255,255,.95); border-bottom:1px solid var(--line); box-shadow:0 6px 18px rgba(15,23,42,.06); }
+        .nav { min-height:96px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+        .brand { display:flex; align-items:center; gap:14px; text-decoration:none; color:var(--text); }
+        .brand-badge { width:58px; height:58px; border-radius:18px; display:grid; place-items:center; color:#fff; font-size:24px; font-weight:800; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); }
+        .brand-text { display:flex; flex-direction:column; line-height:1; }
+        .brand-title { font-size:24px; font-weight:800; color:#5f79ef; }
+        .brand-subtitle { margin-top:4px; font-size:12px; font-weight:800; letter-spacing:.06em; color:#6b7280; }
+        .nav-links { display:flex; align-items:center; gap:40px; font-size:18px; font-weight:700; }
+        .nav-links a { text-decoration:none; color:#4b5563; padding-bottom:10px; }
+        .nav-links a.active { color:var(--primary); border-bottom:3px solid var(--primary); }
+        .nav-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+        .nav-actions { display:flex; align-items:center; gap:14px; }
+        .login-btn { display:inline-flex; align-items:center; justify-content:center; min-width:122px; padding:16px 26px; border-radius:12px; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:white; text-decoration:none; font-size:18px; font-weight:800; box-shadow:0 12px 22px rgba(106,123,247,.28); }
+        .signup-btn { display:inline-flex; align-items:center; justify-content:center; min-width:132px; padding:16px 26px; border-radius:12px; border:1px solid var(--line); background:white; color:var(--text); text-decoration:none; font-size:18px; font-weight:800; }
+        .teacher-btn { display:inline-flex; align-items:center; justify-content:center; min-width:170px; padding:16px 26px; border-radius:12px; background:#fff; color:var(--primary-dark); text-decoration:none; font-size:18px; font-weight:800; border:2px solid #cfd8ff; }
+        .hero { padding:90px 0 110px; }
+        .hero-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:70px; align-items:center; }
+        .hero-copy h1 { margin:0 0 24px; font-size:clamp(56px,7vw,78px); line-height:1.08; letter-spacing:-.03em; }
+        .hero-copy p { margin:0 0 40px; max-width:880px; font-size:28px; line-height:1.45; color:var(--muted); }
+        .cta-row { display:flex; gap:18px; flex-wrap:wrap; }
+        .btn-primary, .btn-outline { display:inline-flex; align-items:center; justify-content:center; min-width:260px; padding:22px 30px; border-radius:14px; text-decoration:none; font-size:20px; font-weight:800; }
+        .btn-primary { color:white; background:linear-gradient(135deg,#2f6bef 0%,#3363dd 100%); }
+        .btn-outline { color:#3363dd; background:white; border:2px solid #3363dd; }
+        .hero-art { position:relative; min-height:520px; }
+        .panel-card { position:absolute; border-radius:20px; background:rgba(122,143,248,.08); border:4px solid #6b86ff; }
+        .main-card { width:360px; height:320px; left:70px; top:110px; padding:34px 28px; }
+        .card-line { height:26px; border-radius:8px; background:rgba(106,123,247,.22); margin-bottom:24px; }
+        .card-line.short { width:62%; } .card-line.mid { width:78%; } .card-line.long { width:100%; }
+        .card-button { width:120px; height:44px; border-radius:8px; background:#3363dd; margin-top:30px; }
+        .circle-badge { position:absolute; width:220px; height:220px; border-radius:50%; border:4px solid var(--blue); background:rgba(52,120,246,.12); right:80px; top:60px; display:grid; place-items:center; font-size:76px; font-weight:800; color:#4a5dd9; }
+        .badge-box { position:absolute; width:120px; height:128px; border-radius:18px; display:grid; place-items:center; font-size:44px; font-weight:800; border:4px solid; }
+        .badge-green { right:0; top:210px; background:rgba(17,197,124,.15); border-color:var(--green); color:#059669; }
+        .badge-amber { right:120px; bottom:50px; background:rgba(245,163,0,.14); border-color:var(--amber); color:#d97706; }
+        .stats-bar { background:linear-gradient(90deg,var(--primary) 0%,var(--primary-dark) 100%); color:white; padding:54px 0; }
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:28px; text-align:center; }
+        .stat-value { font-size:64px; font-weight:800; margin-bottom:10px; }
+        .stat-label { font-size:20px; }
+        .section { padding:78px 0; text-align:center; }
+        .section h2 { margin:0 0 18px; font-size:clamp(48px,5vw,60px); line-height:1.12; }
+        .section p { margin:0 auto; max-width:980px; color:var(--muted); font-size:24px; line-height:1.5; }
+        .section .single-cta { margin-top:40px; }
+        .footer { background:var(--footer); color:white; padding:70px 0; }
+        .footer-grid { display:grid; grid-template-columns:1.2fr 1fr 1fr 1.2fr; gap:44px; }
+        .footer h3, .footer h4 { margin:0 0 22px; color:#6f86ff; font-size:22px; }
+        .footer p, .footer li, .footer a { color:#c5d0e0; text-decoration:none; list-style:none; font-size:18px; line-height:1.8; margin:0; }
+        .footer ul { margin:0; padding:0; list-style:none; }
+        @media (max-width:1200px) { .hero-grid, .footer-grid { grid-template-columns:1fr; } .hero-art { min-height:460px; } }
+        @media (max-width:900px) { .container { width:min(100%,calc(100% - 32px)); } .nav { flex-wrap:wrap; justify-content:center; } .nav-links { gap:22px; flex-wrap:wrap; justify-content:center; } .stats-grid { grid-template-columns:repeat(2,1fr); } .hero-copy h1 { font-size:52px; } .hero-copy p, .section p { font-size:21px; } .main-card { position:relative; left:auto; top:auto; width:100%; max-width:360px; } .circle-badge, .badge-box { transform:scale(.85); transform-origin:center; } }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container nav">
+            <a href="{% url 'home' %}" class="brand">
+                <span class="brand-badge">AL</span>
+                <span class="brand-text">
+                    <span class="brand-title">Adaptive</span>
+                    <span class="brand-subtitle">LEARNING LMS</span>
+                </span>
+            </a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}" class="active">Home</a>
+                <a href="{% url 'landing_courses' %}">Courses</a>
+                <a href="{% url 'landing_about' %}">About</a>
+                <a href="{% url 'landing_contact' %}">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="{% url 'signup' %}" class="signup-btn">Sign Up</a>
+                <a href="{% url 'login' %}" class="login-btn">Login</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <h1>Welcome to<br>LearnTrust</h1>
+                    <p>Secure Learning Management System with adaptive learning, progress tracking, and certificates. Learn smarter with encrypted content, micro-quizzes, and real-time analytics.</p>
+                    <div class="cta-row">
+                        <a href="{% url 'landing_courses' %}" class="btn-primary">Explore Courses</a>
+                        <a href="{% url 'signup' %}" class="btn-outline">Get Started</a>
+                    </div>
+                </div>
+                <div class="hero-art">
+                    <div class="panel-card main-card">
+                        <div class="card-line long"></div>
+                        <div class="card-line short"></div>
+                        <div class="card-line mid"></div>
+                        <div class="card-line short"></div>
+                        <div class="card-button"></div>
+                    </div>
+                    <div class="circle-badge">LT</div>
+                    <div class="badge-box badge-green">SEC</div>
+                    <div class="badge-box badge-amber">CERT</div>
+                </div>
+            </div>
+        </section>
+        <section class="stats-bar">
+            <div class="container stats-grid">
+                <div><div class="stat-value">{{ stats.learners }}</div><div class="stat-label">Active Students</div></div>
+                <div><div class="stat-value">{{ stats.courses }}</div><div class="stat-label">Courses Available</div></div>
+                <div><div class="stat-value">{{ stats.teachers }}</div><div class="stat-label">Expert Teachers</div></div>
+                <div><div class="stat-value">{{ stats.secure_learning }}</div><div class="stat-label">Secure Learning</div></div>
+            </div>
+        </section>
+        <section class="section" id="about"><div class="container"><h2>Why Choose LearnTrust?</h2><p>Experience the future of learning with live platform data, adaptive progression, verified certificates, and instructor-led learning built into one secure LMS.</p></div></section>
+        <section class="section"><div class="container"><h2>Ready to Start Learning?</h2><p>Join students and teachers on LearnTrust. Create your account today and unlock a world of secure, adaptive learning.</p><div class="single-cta"><a href="{% url 'signup' %}" class="btn-primary" style="min-width:264px;">Create Free Account</a></div></div></section>
+    </main>
+    <footer class="footer" id="contact">
+        <div class="container footer-grid">
+            <div><h3>LearnTrust</h3><p>Secure Learning Management System with adaptive learning, progress tracking, and certificates.</p></div>
+            <div><h4>Quick Links</h4><ul><li><a href="{% url 'home' %}">Home</a></li><li><a href="{% url 'landing_courses' %}">Courses</a></li><li><a href="{% url 'landing_about' %}">About</a></li></ul></div>
+            <div><h4>Resources</h4><ul><li><a href="{% url 'login' %}">Login</a></li><li><a href="{% url 'signup' %}">Sign Up</a></li></ul></div>
+            <div><h4>Contact</h4><p>Email: support@learntrust.com</p><p>Phone: +1 (555) 123-4567</p></div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,142 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<style>
+    .notif-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .notif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .notif-mark-read {
+        background: none;
+        border: none;
+        color: var(--primary);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .notif-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .notif-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        gap: 1rem;
+        position: relative;
+    }
+
+    .notif-unread-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border-radius: 50%;
+        position: absolute;
+        left: 0.5rem;
+        top: 1.8rem;
+    }
+
+    .notif-icon {
+        background: #eff6ff;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .notif-content {
+        flex: 1;
+    }
+
+    .notif-title {
+        margin: 0 0 0.25rem;
+        font-size: 1rem;
+        color: var(--dark);
+    }
+
+    .notif-msg {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .notif-time {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .notif-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #cbd5e1;
+        cursor: pointer;
+        align-self: flex-start;
+    }
+
+    .notif-empty {
+        text-align: center;
+        padding: 4rem;
+        background: white;
+        border-radius: 16px;
+        border: 1px dashed #cbd5e1;
+    }
+
+    .notif-empty-text {
+        font-size: 1.1rem;
+        color: #64748b;
+    }
+</style>
+
+<div class="notif-container">
+    <div class="notif-header">
+        <h1>Notifications</h1>
+        <a href="?action=mark_read" class="notif-mark-read" style="text-decoration: none;">Mark all as read</a>
+    </div>
+
+    <div class="notif-grid">
+        {% for notification in notifications %}
+        <div class="notif-card">
+            {% if not notification.is_read %}
+            <div class="notif-unread-dot"></div>
+            {% endif %}
+
+            <div class="notif-icon">🔔</div>
+
+            <div class="notif-content">
+                <a href="{% if notification.link %}{{ notification.link }}{% else %}#{% endif %}" style="text-decoration: none; color: inherit;">
+                    <p class="notif-msg">{{ notification.message }}</p>
+                    <span class="notif-time">
+                        {{ notification.created_at|timesince }} ago
+                    </span>
+                </a>
+            </div>
+
+            <a href="{% url 'delete_notification' notification.id %}" class="notif-close" style="text-decoration: none;">&times;</a>
+        </div>
+        {% empty %}
+        <div class="notif-empty">
+            <p class="notif-empty-text">You have no new notifications.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

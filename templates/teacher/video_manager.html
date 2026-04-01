@@ -1,0 +1,171 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Video Manager | LearnTrust{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for teacher pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .video-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        transition: transform 0.3s ease;
+    }
+
+    .video-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .video-thumb {
+        height: 160px;
+        background: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .play-btn {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(4px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .video-info {
+        padding: 1.5rem;
+    }
+
+    .video-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-icon {
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        cursor: pointer;
+        color: #64748b;
+        flex: 1;
+        text-align: center;
+        text-decoration: none;
+        font-size: 0.8rem;
+    }
+
+    .btn-icon:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin: 0;">Video Manager</h1>
+                    <p style="color: #64748b;">Manage all your course video lessons</p>
+                </div>
+                <a href="{% url 'teacher:course_create' %}" style="padding: 0.8rem 1.5rem; background: var(--secondary); color: white; border-radius: 12px; text-decoration: none; font-weight: 600;">+ New Course</a>
+            </div>
+
+            <div class="video-grid">
+                {% for module in modules %}
+                <div class="video-card">
+                    <div class="video-thumb">
+                        <div class="play-btn">▶</div>
+                    </div>
+                    <div class="video-info">
+                        <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">{{ module.title }}</h3>
+                        <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.85rem;">Course: {{ module.course.title }}</p>
+                        <p style="margin: 0.4rem 0 0; color: #64748b; font-size: 0.8rem;">
+                            {% if module.dash_manifest %}DASH Ready{% elif module.video_file %}Local Upload{% else %}External URL{% endif %}
+                        </p>
+                        
+                        <div class="video-actions">
+                            <a href="{% url 'video_player' module.id %}" class="btn-icon">Preview</a>
+                            <a href="{% url 'teacher:edit_module' module.id %}" class="btn-icon">Edit</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: white; border-radius: 20px;">
+                    <p style="font-size: 3rem; margin-bottom: 1rem;">📹</p>
+                    <h3 style="color: #64748b;">No videos uploaded yet.</h3>
+                    <a href="{% url 'teacher:upload_lesson' %}" style="color: var(--primary); font-weight: 600;">Upload your first lesson</a>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

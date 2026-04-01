@@ -1,0 +1,176 @@
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="logo-area" style="text-decoration: none;">
+            <div class="logo-badge">AL</div>
+            <div class="logo-text">
+                <span class="brand-name">Adaptive</span>
+                <span class="brand-sub">LEARNING MS</span>
+            </div>
+        </a>
+        <p class="sidebar-desc">Global Admin Dashboard</p>
+    </div>
+
+    <nav class="sidebar-menu">
+        <a href="{% url 'management:dashboard' %}" class="sidebar-link {% if active_menu == 'dashboard' %}active{% endif %}">
+            <span class="icon">Home</span> <span class="text">Overview</span>
+        </a>
+        <a href="{% url 'management:user_list' %}" class="sidebar-link {% if active_menu == 'users' %}active{% endif %}">
+            <span class="icon">Users</span> <span class="text">User Management</span>
+        </a>
+        <a href="{% url 'management:course_list' %}" class="sidebar-link {% if active_menu == 'courses' %}active{% endif %}">
+            <span class="icon">Map</span> <span class="text">Global Courses</span>
+        </a>
+        <a href="{% url 'management:system_stats' %}" class="sidebar-link {% if active_menu == 'stats' %}active{% endif %}">
+            <span class="icon">Data</span> <span class="text">Analytics</span>
+        </a>
+        <a href="{% url 'management:certificate_registry' %}" class="sidebar-link {% if active_menu == 'certificates' %}active{% endif %}">
+            <span class="icon">Cert</span> <span class="text">Certificates</span>
+        </a>
+        <a href="{% url 'management:platform_settings' %}" class="sidebar-link {% if active_menu == 'settings' %}active{% endif %}">
+            <span class="icon">Cfg</span> <span class="text">Platform Settings</span>
+        </a>
+        <a href="{% url 'management:export_watch_logs' %}" class="sidebar-link">
+            <span class="icon">CSV</span> <span class="text">Export Watch Logs</span>
+        </a>
+        <a href="/admin/" class="sidebar-link">
+            <span class="icon">DJA</span> <span class="text">Django Admin</span>
+        </a>
+        <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0.5rem 0;">
+        <a href="{% url 'dashboard' %}" class="sidebar-link">
+            <span class="icon">LMS</span> <span class="text">Student Portal</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="sidebar-link logout-btn">
+            <span class="icon">Out</span>
+            <span class="text">Logout</span>
+        </a>
+    </div>
+</aside>
+
+<style>
+    .sidebar {
+        background: #ffffff;
+        width: 260px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 10px 0 30px -10px rgba(0, 0, 0, 0.05);
+        padding: 2rem 1.25rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        border-right: 1px solid #f1f5f9;
+        z-index: 1100;
+        box-sizing: border-box;
+    }
+
+    .sidebar-header {
+        padding: 0 0.5rem 2rem;
+    }
+
+    .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .logo-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .logo-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #667eea;
+        line-height: 1;
+        letter-spacing: -0.5px;
+    }
+
+    .brand-sub {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+    .sidebar-desc {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0.2rem 0 0;
+        font-weight: 500;
+        padding-left: 0.2rem;
+    }
+
+    .sidebar-menu {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1.25rem;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-link:hover {
+        background: #f8fafc;
+        color: #667eea;
+    }
+
+    .sidebar-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 8px 15px -4px rgba(102, 126, 234, 0.4);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .logout-btn {
+        color: #ef4444 !important;
+    }
+
+    .logout-btn:hover {
+        background: #fff1f2 !important;
+        color: #dc2626 !important;
+    }
+
+    .icon {
+        width: 28px;
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+    }
+</style>

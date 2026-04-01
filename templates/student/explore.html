@@ -1,0 +1,166 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<style>
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .modern-course-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s;
+    }
+
+    .modern-course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .modern-course-img {
+        height: 180px;
+        width: 100%;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .modern-course-content {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .modern-course-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin: 0 0 1.5rem 0;
+        line-height: 1.4;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: opacity 0.2s;
+        box-sizing: border-box;
+    }
+
+    .btn-action:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    .btn-blue {
+        background: #2563eb;
+        color: white;
+    }
+
+    .btn-green {
+        background: var(--success);
+        color: white;
+    }
+
+    .course-placeholder-text {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        font-size: 0.8rem;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="explore-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="display: flex; align-items: center; gap: 0.75rem; margin: 0; font-weight: 800;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            </svg>
+            {% if query %} Search results for "{{ query }}" {% else %} Explore Courses {% endif %}
+        </h2>
+    </div>
+
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="modern-course-card">
+            <div class="modern-course-img">
+                {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width:100%; height:100%; object-fit:cover;" />
+                {% else %}
+                    <div
+                        style="width: 100%; height: 100%; background: #05051a; padding: 1rem; display: flex; flex-direction: column;">
+                        <div
+                            style="color: #2dd4bf; font-size: 0.5rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">
+                            Course Analytics</div>
+                        <!-- Little visual chart mockup block -->
+                        <div
+                            style="flex: 1; display: flex; align-items: flex-end; gap: 4px; margin-top: auto; opacity: 0.8;">
+                            <div style="width: 10%; height: 30%; background: #0ea5e9;"></div>
+                            <div style="width: 10%; height: 50%; background: #0ea5e9;"></div>
+                            <div style="width: 10%; height: 80%; background: #0ea5e9;"></div>
+                            <div style="width: 10%; height: 40%; background: #0ea5e9;"></div>
+                            <div style="width: 10%; height: 60%; background: #0ea5e9;"></div>
+                            <div style="width: 10%; height: 20%; background: #0ea5e9;"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                <span
+                    style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.9); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--primary);">
+                    FREE
+                </span>
+            </div>
+
+            <div class="modern-course-content">
+                <h3 class="modern-course-title">{{ course.title }}</h3>
+                <p style="color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.5rem; flex: 1;">
+                    {{ course.description|truncatewords:20 }}
+                </p>
+
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+                    <div style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">
+                        <span>👤 {{ course.enrollment_set.count }} Students</span>
+                    </div>
+
+                    {% if course.id in enrolled_course_ids %}
+                    <a href="{% url 'my_courses' %}" class="btn-action btn-green">
+                        Enrolled
+                    </a>
+                    {% else %}
+                    <a href="{% url 'enroll_course' course.id %}" class="btn-action btn-blue">
+                        Enroll Now
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div
+            style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: white; border-radius: 16px; border: 1px dashed #cbd5e1;">
+            <p style="font-size: 1.1rem; color: #64748b; margin-top: 1rem;">No courses found matching your criteria.</p>
+            <a href="{% url 'explore' %}" style="color: var(--primary); font-weight: 600; text-decoration: none;">View
+                all courses</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

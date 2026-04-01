@@ -1,0 +1,226 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<style>
+    .prof-wrap {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .prof-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .prof-hero {
+        height: 150px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    }
+
+    .prof-body {
+        padding: 0 3rem 3rem;
+        margin-top: -50px;
+    }
+
+    .prof-header {
+        display: flex;
+        align-items: flex-end;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .prof-avatar {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 4px solid white;
+    }
+
+    .prof-info {
+        flex: 1;
+        padding-bottom: 1rem;
+    }
+
+    .prof-name {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .prof-join {
+        margin: 0.5rem 0 0;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .prof-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .prof-stat-box {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .prof-stat-val-enrolled {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .prof-stat-val-completed {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--success);
+    }
+
+    .prof-stat-val-certs {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #f59e0b;
+    }
+
+    .prof-stat-lbl {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .prof-section {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .prof-sec-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .prof-contact-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+
+    .prof-lbl {
+        display: block;
+        font-size: 0.75rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .prof-val {
+        font-weight: 600;
+        margin: 0;
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .prof-edit {
+        margin-top: 4rem;
+        text-align: center;
+    }
+
+    .prof-edit-btn {
+        background: #f1f5f9;
+        color: var(--dark);
+        padding: 0.8rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+</style>
+
+<div class="prof-wrap">
+    <div class="prof-card">
+        <div class="prof-hero"></div>
+        <div class="prof-body">
+            <div class="prof-header">
+                <div class="prof-avatar">
+                    {% if request.user.studentprofile.profile_image %}
+                        <img src="{{ request.user.studentprofile.profile_image.url }}" alt="{{ request.user.username }}" style="width:100%;height:100%;border-radius:20px;object-fit:cover;" />
+                    {% else %}
+                        👤
+                    {% endif %}
+                </div>
+                <div class="prof-info">
+                    <h1 class="prof-name">{{ display_name }}</h1>
+                    <p class="prof-join">
+                        Student &bull; Joined {{ date_joined|date:"F Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="prof-stats">
+                <div class="prof-stat-box">
+                    <div class="prof-stat-val-enrolled">
+                        {{ enrollments_count }}
+                    </div>
+                    <div class="prof-stat-lbl">Enrolled Courses</div>
+                </div>
+                <div class="prof-stat-box">
+                    <div class="prof-stat-val-completed">{{ completed_count }}</div>
+                    <div class="prof-stat-lbl">Completed</div>
+                </div>
+                <div class="prof-stat-box">
+                    <div class="prof-stat-val-certs">{{ certificate_count }}</div>
+                    <div class="prof-stat-lbl">Certificates</div>
+                </div>
+            </div>
+
+            <div class="prof-section">
+                <section>
+                    <h3 class="prof-sec-title">
+                        <span>📧</span> Contact Information
+                    </h3>
+                    <div class="prof-contact-grid">
+                        <div>
+                            <label class="prof-lbl">Email Address</label>
+                            <p class="prof-val">
+                                {{ request.user.email|default:"Not provided" }}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="prof-lbl">Username</label>
+                            <p class="prof-val">
+                                {{ request.user.username }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="prof-edit">
+                <a href="{% url 'settings' %}" class="prof-edit-btn">Edit Profile Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Global Course Management | Admin Panel{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        margin-top: 1rem;
+    }
+
+    .sidebar {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        height: min-content;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+
+    .sidebar-link.active {
+        background: linear-gradient(135deg, #1a1a2e, #4f46e5);
+        color: white;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+
+    .status-active { color: #16a34a; font-weight: 600; }
+    .status-inactive { color: #dc2626; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    {% include 'management/sidebar.html' %}
+
+    <div class="content-area">
+        <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 2rem;">Global Course List</h1>
+
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Course Title</th>
+                        <th>Teacher</th>
+                        <th>Students</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td style="font-weight: 700;">{{ course.title }}</td>
+                        <td>{{ course.teacher.username|default:"System" }}</td>
+                        <td>{{ course.student_count }}</td>
+                        <td>${{ course.price }}</td>
+                        <td>
+                            <button style="border: none; background: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Disable</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

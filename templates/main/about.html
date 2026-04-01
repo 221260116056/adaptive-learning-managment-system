@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About LearnTrust</title>
+    <style>
+        body{margin:0;font-family:Arial,sans-serif;background:#eef4fb;color:#1b1d3b}.container{width:min(1460px,calc(100% - 80px));margin:0 auto}.site-header{background:#fff;border-bottom:1px solid #d9e3f0;box-shadow:0 6px 18px rgba(15,23,42,.06)}.nav{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:#1b1d3b}.brand-badge{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:24px;font-weight:800;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%)}.brand-text{display:flex;flex-direction:column;line-height:1}.brand-title{font-size:24px;font-weight:800;color:#5f79ef}.brand-subtitle{margin-top:4px;font-size:12px;font-weight:800;letter-spacing:.06em;color:#6b7280}.nav-links{display:flex;align-items:center;gap:40px;font-size:18px;font-weight:700}.nav-links a{text-decoration:none;color:#4b5563;padding-bottom:10px}.nav-links a.active{color:#6a7bf7;border-bottom:3px solid #6a7bf7}.nav-actions{display:flex;align-items:center;gap:14px}.login-btn{display:inline-flex;align-items:center;justify-content:center;min-width:122px;padding:16px 26px;border-radius:12px;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;text-decoration:none;font-size:18px;font-weight:800;box-shadow:0 12px 22px rgba(106,123,247,.28)}.signup-btn{display:inline-flex;align-items:center;justify-content:center;min-width:132px;padding:16px 26px;border-radius:12px;border:1px solid #d9e3f0;background:white;color:#1b1d3b;text-decoration:none;font-size:18px;font-weight:800}
+        .section{padding:60px 0}.hero h1{font-size:58px;margin:0 0 16px}.hero p{font-size:24px;line-height:1.6;color:#4e6786;max-width:980px;margin:0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:34px}.card{background:#fff;border:1px solid #d9e3f0;border-radius:22px;padding:28px;box-shadow:0 12px 32px rgba(15,23,42,.06)}.card h3{margin-top:0;font-size:28px}.card p{margin:0;color:#4e6786;line-height:1.8;font-size:18px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:34px}.stat{background:linear-gradient(90deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;border-radius:22px;padding:28px;text-align:center}.value{font-size:52px;font-weight:800}.label{font-size:18px;margin-top:8px}
+        @media (max-width:960px){.grid,.stats{grid-template-columns:1fr 1fr}} @media (max-width:760px){.container{width:min(100%,calc(100% - 32px))}.nav{flex-wrap:wrap;justify-content:center}.nav-links{gap:22px;flex-wrap:wrap;justify-content:center}.grid,.stats{grid-template-columns:1fr}.hero h1{font-size:44px}.hero p{font-size:20px}}
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container nav">
+            <a href="{% url 'home' %}" class="brand">
+                <span class="brand-badge">AL</span>
+                <span class="brand-text">
+                    <span class="brand-title">Adaptive</span>
+                    <span class="brand-subtitle">LEARNING LMS</span>
+                </span>
+            </a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'landing_courses' %}">Courses</a>
+                <a href="{% url 'landing_about' %}" class="active">About</a>
+                <a href="{% url 'landing_contact' %}">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="{% url 'signup' %}" class="signup-btn">Sign Up</a>
+                <a href="{% url 'login' %}" class="login-btn">Login</a>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <section class="section hero"><h1>About LearnTrust</h1><p>LearnTrust is a secure adaptive learning platform built for structured learning, instructor-led delivery, progress tracking, certificates, and verifiable outcomes.</p><div class="stats"><div class="stat"><div class="value">{{ stats.learners }}</div><div class="label">Students</div></div><div class="stat"><div class="value">{{ stats.courses }}</div><div class="label">Courses</div></div><div class="stat"><div class="value">{{ stats.teachers }}</div><div class="label">Teachers</div></div><div class="stat"><div class="value">{{ stats.secure_learning }}</div><div class="label">Security</div></div></div></section>
+        <section class="section"><div class="grid"><div class="card"><h3>Adaptive Learning</h3><p>Course flow, gated modules, quizzes, and progress records help learners move with structure instead of passively watching content.</p></div><div class="card"><h3>Trusted Verification</h3><p>Certificate generation, QR verification, and tracked completion logic provide a stronger proof-of-learning system.</p></div><div class="card"><h3>Instructor Control</h3><p>Teachers can manage courses, publish lessons, monitor students, and use a dedicated panel without mixing with the learner experience.</p></div></div></section>
+    </main>
+</body>
+</html>

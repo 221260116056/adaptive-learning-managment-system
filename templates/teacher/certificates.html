@@ -1,0 +1,217 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Certificate Approvals | Teacher Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .layout { display: flex; min-height: 100vh; }
+    .main-wrapper { 
+        flex: 1; 
+        margin-left: 260px; 
+        background: #f8fafc; 
+        display: flex; 
+        flex-direction: column; 
+    }
+    .main-content { padding: 3rem; flex: 1; }
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .approval-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+
+    .table-container { width: 100%; overflow-x: auto; }
+    
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    
+    th {
+        background: #f8fafc;
+        padding: 1.25rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #1e293b;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fcfdfe; }
+
+    .user-info { display: flex; align-items: center; gap: 0.75rem; }
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        background: #e0e7ff;
+        color: #4f46e5;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .badge-pending { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .badge-admin { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .badge-other { background: #f1f5f9; color: #64748b; }
+
+    .btn-approve {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-approve:hover { transform: translateY(-1px); box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2); }
+
+    .btn-reject {
+        background: #fff5f5;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-reject:hover { background: #fee2e2; border-color: #dc2626; }
+
+    .empty-state {
+        text-align: center;
+        padding: 5rem 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 style="margin:0; font-size: 1.875rem; font-weight: 800; color: #0f172a;">Certificate Approvals</h1>
+                    <p style="margin: 0.25rem 0 0; color: #64748b;">Review and approve certificates for students who finished your courses.</p>
+                </div>
+            </div>
+
+            <!-- Stats Mini Bar -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid #f1f5f9; display: flex; align-items: center; gap: 1rem;">
+                    <div style="width:40px; height:40px; border-radius:10px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; font-size:1.25rem;">⏳</div>
+                    <div>
+                        <div style="font-size:0.75rem; color:#64748b; font-weight:600; text-transform:uppercase;">Pending Your Approval</div>
+                        <div style="font-size:1.25rem; font-weight:700; color:#1e293b;">{{ certificates|length }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="approval-card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Submission Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cert in certificates %}
+                            <tr>
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar">{{ cert.user.username|slice:":1"|upper }}</div>
+                                        <div>
+                                            <div style="font-weight: 700;">{{ cert.user.username }}</div>
+                                            <div style="font-size: 0.8rem; color: #64748b;">{{ cert.user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600;">{{ cert.course.title }}</div>
+                                </td>
+                                <td>
+                                    <div style="color: #64748b; font-size: 0.9rem;">{{ cert.created_at|date:"M d, Y" }}</div>
+                                </td>
+                                <td>
+                                    {% if cert.status == 'pending_teacher' %}
+                                        <span class="badge badge-pending">● Needs Review</span>
+                                    {% elif cert.status == 'pending_admin' %}
+                                        <span class="badge badge-admin">● Approved (Pending Admin)</span>
+                                    {% else %}
+                                        <span class="badge badge-other">{{ cert.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        {% if cert.status == 'pending_teacher' %}
+                                            <a href="{% url 'teacher:teacher_approve_certificate' cert.id %}" class="btn-approve">Approve</a>
+                                            <a href="{% url 'teacher:teacher_reject_certificate' cert.id %}" class="btn-reject">Reject</a>
+                                        {% elif cert.status == 'pending_admin' %}
+                                            <a href="{% url 'teacher:teacher_reject_certificate' cert.id %}" class="btn-reject">Recall & Reject</a>
+                                        {% else %}
+                                            <span style="color: #94a3b8; font-size: 0.875rem;">No actions available</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
+                                        <h3 style="color: #1e293b; margin: 0;">All caught up!</h3>
+                                        <p style="color: #64748b; margin: 0.5rem 0 0;">No pending certificate approvals at the moment.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+        
+        <footer style="background: #15182f; color: white; text-align: center; padding: 1.5rem; margin-top: auto;">
+             © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}

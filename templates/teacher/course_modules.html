@@ -1,0 +1,320 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}{{ course.title }} — Modules | ALMS{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { display: flex; flex-direction: column; min-height: 100vh; margin: 0; }
+
+    .layout { display: flex; flex: 1; }
+
+    .main-wrapper {
+        flex: 1;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content { padding: 0 !important; }
+
+    .main-content { padding: 3rem; flex: 1; }
+
+    .footer {
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .breadcrumb {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 0.25rem;
+    }
+
+    .breadcrumb a { color: #667eea; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .btn-primary {
+        padding: 0.65rem 1.25rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-pill {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.6rem 1.25rem;
+        font-size: 0.875rem;
+        color: #475569;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .module-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .module-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s;
+    }
+
+    .module-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    .seq-badge {
+        width: 36px;
+        height: 36px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.875rem;
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+    .type-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .type-video   { background: #eef2ff; }
+    .type-theory  { background: #f0fdf4; }
+    .type-quiz    { background: #fff7ed; }
+
+    .module-info { flex: 1; min-width: 0; }
+
+    .module-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #1e293b;
+        margin: 0 0 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .module-meta {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .badge-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .badge-video  { background: #eef2ff; color: #4f46e5; }
+    .badge-theory { background: #f0fdf4; color: #16a34a; }
+    .badge-quiz   { background: #fff7ed; color: #ea580c; }
+
+    .module-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+    .btn-sm {
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .btn-sm:hover { border-color: #667eea; color: #667eea; background: #f5f7ff; }
+
+    .btn-sm-danger {
+        border-color: #fca5a5;
+        color: #dc2626;
+        background: #fff5f5;
+    }
+
+    .btn-sm-danger:hover { border-color: #dc2626; background: #fee2e2; }
+
+    .empty-state {
+        background: white;
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        border: 2px dashed #e2e8f0;
+    }
+
+    .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .empty-state h3 { color: #475569; margin: 0 0 0.5rem; font-size: 1.25rem; }
+    .empty-state p { color: #94a3b8; margin: 0 0 1.5rem; }
+
+    /* Processing status badge */
+    .status-processing { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #b45309; background: #fef3c7; border-radius: 999px; padding: 0.15rem 0.5rem; }
+    .status-done       { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #16a34a; background: #dcfce7; border-radius: 999px; padding: 0.15rem 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="{% url 'teacher:dashboard' %}">Dashboard</a> &rsaquo;
+                        <a href="{% url 'teacher:course_list' %}">Courses</a> &rsaquo;
+                        Modules
+                    </div>
+                    <h1>📚 {{ course.title }}</h1>
+                </div>
+                <a href="{% url 'teacher:create_module' %}" class="btn-primary">+ Add Module</a>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-pill">📦 {{ modules.count }} Module{{ modules.count|pluralize }}</div>
+                <div class="stat-pill">🎬 {{ modules|length }} Total</div>
+                <div class="stat-pill">📅 Last updated {{ course.created_at|date:"d M Y" }}</div>
+            </div>
+
+            <!-- Module List -->
+            {% if modules %}
+            <div class="module-list">
+                {% for module in modules %}
+                <div class="module-card">
+                    <!-- Order number -->
+                    <div class="seq-badge">{{ forloop.counter }}</div>
+
+                    <!-- Type icon -->
+                    <div class="type-icon type-{{ module.type }}">
+                        {% if module.type == 'video' %}🎬
+                        {% elif module.type == 'theory' %}📖
+                        {% elif module.type == 'quiz' %}📝
+                        {% else %}📦{% endif %}
+                    </div>
+
+                    <!-- Info -->
+                    <div class="module-info">
+                        <p class="module-title">{{ module.title }}</p>
+                        <div class="module-meta">
+                            <span class="badge-type badge-{{ module.type }}">{{ module.get_type_display }}</span>
+
+                            {% if module.type == 'video' %}
+                                {% if module.dash_manifest %}
+                                    <span class="status-done">✅ DASH Ready</span>
+                                {% elif module.video_file %}
+                                    <span>📁 File uploaded</span>
+                                {% else %}
+                                    <span>⏳ No video</span>
+                                {% endif %}
+                            {% elif module.type == 'theory' %}
+                                {% if module.content %}
+                                    <span>📝 Content loaded</span>
+                                {% else %}
+                                    <span>📝 No content</span>
+                                {% endif %}
+                            {% elif module.type == 'quiz' %}
+                                {% if module.question %}
+                                    <span>❓ Quiz question set</span>
+                                {% else %}
+                                    <span>❓ No question</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="module-actions">
+                        <a href="{% url 'teacher:preview_module' module.id %}" class="btn-sm" title="Preview" target="_blank">👁 Preview</a>
+                        <a href="{% url 'teacher:edit_module' module.id %}" class="btn-sm" title="Edit">✏ Edit</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <h3>No modules yet</h3>
+                <p>Add your first module — video, theory, or quiz — to build out this course.</p>
+                <a href="{% url 'teacher:create_module' %}" class="btn-primary">+ Add First Module</a>
+            </div>
+            {% endif %}
+
+        </main>
+
+        <footer class="footer">
+            © 2026 ALMS — Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

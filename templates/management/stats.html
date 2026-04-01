@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div style="display: flex;">
+    {% include 'management/sidebar.html' %}
+    <div style="margin-left: 260px; padding: 2.5rem; width: 100%; background: #f8fafc; min-height: 100vh;">
+        <h1 style="margin-top: 0;">Audit And Analytics</h1>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.5rem 0 2rem;">
+            <div style="background: white; border-radius: 16px; padding: 1.25rem; border: 1px solid #e2e8f0;">
+                <strong>Active Certificates</strong>
+                <div style="font-size: 2rem; margin-top: 0.5rem;">{{ active_certificates }}</div>
+            </div>
+            <div style="background: white; border-radius: 16px; padding: 1.25rem; border: 1px solid #e2e8f0;">
+                <strong>Revoked Certificates</strong>
+                <div style="font-size: 2rem; margin-top: 0.5rem;">{{ revoked_certificates }}</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.5rem;">
+            <section style="background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                <h2 style="margin-top: 0;">Top Course Engagement</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="text-align: left; color: #64748b;">
+                            <th style="padding-bottom: 0.75rem;">Course</th>
+                            <th>Students</th>
+                            <th>Modules</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in course_engagement %}
+                        <tr>
+                            <td style="padding: 0.75rem 0;">{{ course.title }}</td>
+                            <td>{{ course.student_count }}</td>
+                            <td>{{ course.module_count }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="padding: 1rem 0;">No analytics yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <section style="display: grid; gap: 1.5rem;">
+                <div style="background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                    <h2 style="margin-top: 0;">Recent Quiz Attempts</h2>
+                    {% for attempt in recent_attempts %}
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+                        <strong>{{ attempt.student.username }}</strong> on {{ attempt.module.title }}
+                        <div style="color: #64748b; font-size: 0.9rem;">Score {{ attempt.score }}% • {% if attempt.passed %}Passed{% else %}Failed{% endif %}</div>
+                    </div>
+                    {% empty %}
+                    <p>No quiz attempts recorded yet.</p>
+                    {% endfor %}
+                </div>
+                <div style="background: white; border-radius: 18px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                    <h2 style="margin-top: 0;">Recent Watch Events</h2>
+                    {% for event in recent_events %}
+                    <div style="padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+                        <strong>{{ event.student.username }}</strong> • {{ event.event_type }}
+                        <div style="color: #64748b; font-size: 0.9rem;">{{ event.module.title }} at {{ event.current_time }}s</div>
+                    </div>
+                    {% empty %}
+                    <p>No watch logs recorded yet.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

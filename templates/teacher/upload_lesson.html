@@ -1,0 +1,561 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Upload Lesson | LearnTrust{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for teacher pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .builder-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .module-selector {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .module-btn {
+        padding: 2rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .module-btn:hover {
+        border-color: var(--primary);
+        background: #f0f4ff;
+    }
+
+    .module-btn.active {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+    }
+
+    .module-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .step-section {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .step-section.hidden {
+        display: none;
+    }
+
+    .step-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .selected-module-card {
+        background: linear-gradient(135deg, var(--primary) 0%, #6f49b9 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        display: none;
+    }
+
+    .selected-module-card.active {
+        display: block;
+    }
+
+    .selected-module-card .badge {
+        background: rgba(255,255,255,0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .grid-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .btn-submit {
+        width: auto;
+        padding: 1rem 2rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, var(--primary) 0%, #6f49b9 100%);
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+    }
+
+    .option-group {
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+    }
+
+    .option-group input {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-family: inherit;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .help-text {
+        margin: 0.5rem 0 0;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .checkbox-group {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="builder-card">
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">Create Learning Module</h2>
+                <p style="color: #64748b; margin-bottom: 2.5rem;">Select module type and fill in the relevant fields</p>
+
+                <form method="post" enctype="multipart/form-data" id="moduleForm">
+                    {% csrf_token %}
+                    
+                    <div class="grid-row">
+                        <div class="form-group">
+                            <label>Select Course</label>
+                            <select name="course_id" class="form-control" required>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lesson Title</label>
+                            <input type="text" name="title" class="form-control" required placeholder="e.g. Loops in Python">
+                        </div>
+                    </div>
+
+                    <!-- Module Type Selection -->
+                    <div class="step-section" style="border-bottom: none; margin-bottom: 2rem; padding-bottom: 0;">
+                        <h3 style="margin-bottom: 1.5rem;">Select Module Type</h3>
+                        <div class="module-selector">
+                            <button type="button" class="module-btn" onclick="selectModule('video')">
+                                <span class="module-icon">📹</span>
+                                Video
+                            </button>
+                            <button type="button" class="module-btn" onclick="selectModule('theory')">
+                                <span class="module-icon">📘</span>
+                                Theory
+                            </button>
+                            <button type="button" class="module-btn" onclick="selectModule('quiz')">
+                                <span class="module-icon">❓</span>
+                                Quiz
+                            </button>
+                            <button type="button" class="module-btn" onclick="selectModule('assignment')">
+                                <span class="module-icon">📝</span>
+                                Assignment
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Module Card -->
+                    <div class="selected-module-card" id="selectedModuleCard">
+                        <span class="badge" id="selectedBadge">📹 Video Module</span>
+                    </div>
+
+                    <input type="hidden" name="module_type" id="moduleType" value="">
+
+                    <!-- VIDEO MODULE FORM -->
+                    <div id="videoForm" class="step-section hidden">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Video Module</h3>
+                        </div>
+                        <div class="form-group">
+                            <label>Video URL (YouTube or Direct Link)</label>
+                            <input type="text" name="video_url" class="form-control" placeholder="https://youtube.com/watch?v=...">
+                            <p class="help-text">Leave empty if uploading a local video file</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Local Video</label>
+                            <input type="file" name="video_file" class="form-control" accept="video/mp4,video/webm,video/ogg,video/*">
+                            <p class="help-text">MP4, WebM, or OGG format. Will be converted to HLS for streaming.</p>
+                        </div>
+                        <div class="grid-row" style="margin-bottom: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Min. Watch Percentage (%)</label>
+                                <input type="number" name="min_watch_percent" value="80" class="form-control" min="0" max="100">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Min. Watch Time (Seconds)</label>
+                                <input type="number" name="min_watch_time" value="0" class="form-control" min="0">
+                            </div>
+                        </div>
+
+                        <div class="grid-row" style="margin-bottom: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Required Replays</label>
+                                <input type="number" name="required_replays" value="1" class="form-control" min="1">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Checkpoint Interval (Seconds)</label>
+                                <input type="number" name="checkpoint_interval" value="30" class="form-control" min="10">
+                            </div>
+                        </div>
+
+                        <div class="grid-row" style="align-items: center; background: #fafafa; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 1rem;">
+                            <div class="checkbox-group" style="margin-bottom: 0;">
+                                <input type="checkbox" id="allowSeek" name="allow_seek" style="width: 20px; height: 20px;">
+                                <label for="allowSeek" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Allow Seeking</label>
+                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Let students skip around the video freely.</span>
+                            </div>
+                            <div class="checkbox-group" style="margin-bottom: 0;">
+                                <input type="checkbox" id="disableFastForward" name="disable_fast_forward" checked style="width: 20px; height: 20px;">
+                                <label for="disableFastForward" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Disable Fast-Forward</label>
+                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Prevent playback speed increases.</span>
+                            </div>
+                            <div class="checkbox-group" style="margin-bottom: 0; margin-top: 1rem;">
+                                <input type="checkbox" id="enableCheckpoints" name="enable_checkpoints" checked style="width: 20px; height: 20px;">
+                                <label for="enableCheckpoints" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Enable Checkpoints</label>
+                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Pause video periodically to ensure attention.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- THEORY MODULE FORM -->
+                    <div id="theoryForm" class="step-section hidden">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Theory Module</h3>
+                        </div>
+                        <div class="form-group">
+                            <label>Content (HTML/Rich Text Supported)</label>
+                            <textarea name="theory_content" class="form-control" placeholder="Explain the concepts here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload PDF (Optional)</label>
+                            <input type="file" name="pdf_file" class="form-control" accept="application/pdf">
+                            <p class="help-text">Optional: Attach a PDF document for reference</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Image (Optional)</label>
+                            <input type="file" name="image_file" class="form-control" accept="image/*">
+                            <p class="help-text">Optional: Attach an image to illustrate concepts</p>
+                        </div>
+                    </div>
+
+                    <!-- QUIZ MODULE FORM -->
+                    <div id="quizForm" class="step-section hidden">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Quiz Questions</h3>
+                        </div>
+                        
+                        <div id="quizContainer" style="margin-bottom: 1.5rem;">
+                            <!-- Questions will be dynamically added here -->
+                        </div>
+
+                        <div class="grid-row">
+                            <div class="form-group">
+                                <label>Passing Score (%)</label>
+                                <input type="number" name="passing_score" value="70" class="form-control" min="0" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label>Max Attempts</label>
+                                <input type="number" name="max_attempts" value="3" class="form-control" min="1">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                            <button type="button" class="btn-add-question" onclick="addQuestion()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #f0f4ff; color: var(--primary); border: 2px solid var(--primary); border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                                <span style="font-size: 1.2rem;">+</span> Add Question
+                            </button>
+                            <button type="button" onclick="scrollToQuizSubmit()" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                                ✓ Ready to Submit
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ASSIGNMENT MODULE FORM -->
+                    <div id="assignmentForm" class="step-section hidden">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Assignment Module</h3>
+                        </div>
+                        <div class="form-group">
+                            <label>Assignment Task PDF</label>
+                            <input type="file" name="assignment_file" class="form-control" accept="application/pdf">
+                            <p class="help-text">Upload the PDF task description for students.</p>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn-submit">Save and Sync Module</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+
+<script>
+    let questionCount = 0;
+
+    function selectModule(type) {
+        // Hide all forms
+        document.getElementById('videoForm').classList.add('hidden');
+        document.getElementById('theoryForm').classList.add('hidden');
+        document.getElementById('quizForm').classList.add('hidden');
+        document.getElementById('assignmentForm').classList.add('hidden');
+
+        // Deactivate all buttons
+        document.querySelectorAll('.module-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Set module type
+        document.getElementById('moduleType').value = type;
+
+        // Show selected form and update card
+        const badgeIcons = {
+            'video': '📹 Video Module',
+            'theory': '📘 Theory Module',
+            'quiz': '❓ Quiz Module',
+            'assignment': '📝 Assignment Module'
+        };
+
+        document.getElementById('selectedModuleCard').classList.add('active');
+        document.getElementById('selectedBadge').textContent = badgeIcons[type];
+
+        if (type === 'video') {
+            document.getElementById('videoForm').classList.remove('hidden');
+            event.target.closest('.module-btn').classList.add('active');
+        } else if (type === 'theory') {
+            document.getElementById('theoryForm').classList.remove('hidden');
+            event.target.closest('.module-btn').classList.add('active');
+        } else if (type === 'quiz') {
+            document.getElementById('quizForm').classList.remove('hidden');
+            event.target.closest('.module-btn').classList.add('active');
+            // Add first question if container is empty
+            if (questionCount === 0) {
+                addQuestion();
+            }
+        } else if (type === 'assignment') {
+            document.getElementById('assignmentForm').classList.remove('hidden');
+            // We need to find the button even if it was just clicked
+            const btn = Array.from(document.querySelectorAll('.module-btn')).find(b => b.innerText.includes('Assignment'));
+            if(btn) btn.classList.add('active');
+        }
+    }
+
+    function addQuestion() {
+        questionCount++;
+        
+        const questionHTML = `
+            <div class="quiz-block" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; color: var(--dark); font-size: 1rem;">Question ${questionCount}</h4>
+                    <button type="button" onclick="removeQuestion(this)" class="btn-remove-q" style="background: #fee2e2; color: #dc2626; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Remove</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Question Text</label>
+                    <input type="text" name="questions[${questionCount}][text]" class="form-control" placeholder="Enter your question here..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Answer Options</label>
+                    <div class="option-group">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block; color: #334155; font-weight: 500;">Option A</label>
+                        <input type="text" name="questions[${questionCount}][a]" class="form-control" placeholder="First answer option" required>
+                    </div>
+                    <div class="option-group">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block; color: #334155; font-weight: 500;">Option B</label>
+                        <input type="text" name="questions[${questionCount}][b]" class="form-control" placeholder="Second answer option" required>
+                    </div>
+                    <div class="option-group">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block; color: #334155; font-weight: 500;">Option C</label>
+                        <input type="text" name="questions[${questionCount}][c]" class="form-control" placeholder="Third answer option" required>
+                    </div>
+                    <div class="option-group">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block; color: #334155; font-weight: 500;">Option D</label>
+                        <input type="text" name="questions[${questionCount}][d]" class="form-control" placeholder="Fourth answer option" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Correct Answer</label>
+                    <select name="questions[${questionCount}][correct]" class="form-control" required>
+                        <option value="">Select the correct answer</option>
+                        <option value="A">Option A</option>
+                        <option value="B">Option B</option>
+                        <option value="C">Option C</option>
+                        <option value="D">Option D</option>
+                    </select>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('quizContainer').insertAdjacentHTML('beforeend', questionHTML);
+    }
+
+    function removeQuestion(btn) {
+        btn.closest('.quiz-block').remove();
+        questionCount--;
+    }
+
+    function scrollToQuizSubmit() {
+        // Smooth scroll to the main submit button at the bottom
+        const submitBtn = document.querySelector('.btn-submit');
+        if (submitBtn) {
+            submitBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a visual highlight
+            submitBtn.style.boxShadow = '0 0 0 4px rgba(79, 70, 229, 0.5)';
+            setTimeout(() => {
+                submitBtn.style.boxShadow = '0 8px 16px rgba(79, 70, 229, 0.2)';
+            }, 1500);
+        }
+    }
+
+    // Initialize with video module selected
+    document.addEventListener('DOMContentLoaded', function() {
+        selectModule('video');
+    });
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

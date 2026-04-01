@@ -1,0 +1,48 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<div class="certificates-container" style="max-width: 800px; margin: 0 auto;">
+    <h1>My Certificates</h1>
+    <p style="color: #666;">View and download your earned certificates with cryptographic verification.</p>
+
+    <div class="certificates-list" style="margin-top: 2rem; display: grid; gap: 1.5rem;">
+        {% for cert in certificates %}
+        <div class="cert-card"
+            style="background: white; padding: 1.5rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div>
+                <h3 style="margin: 0;">{{ cert.course.title }}</h3>
+                {% if cert.status == 'approved' %}
+                <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #888;">Issued on: {{ cert.issued_at|date:"F j, Y" }}</p>
+                {% elif cert.status == 'pending_teacher' %}
+                <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #b59f10;">Status: Pending teacher approval</p>
+                {% elif cert.status == 'pending_admin' %}
+                <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #1f6feb;">Status: Pending admin approval</p>
+                {% elif cert.status == 'rejected' %}
+                <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #991b1b;">Status: Rejected</p>
+                {% endif %}
+                <p style="margin: 0.35rem 0 0; font-size: 0.85rem; color: #888;">Certificate ID: {{ cert.certificate_id }}</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                {% if cert.status == 'approved' %}
+                <a href="{% url 'download_certificate' cert.certificate_id %}"
+                   style="display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1rem; border-radius: 10px; background: var(--primary); color: white; text-decoration: none; font-weight: 700;">
+                    Download PDF
+                </a>
+                {% else %}
+                <span
+                    style="display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1rem; border-radius: 10px; background: #e2e8f0; color: #64748b; font-weight: 700;">
+                    Pending Approval
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div
+            style="background: #fdf2f2; border: 1px solid #fee2e2; padding: 2rem; border-radius: 12px; text-align: center;">
+            <p style="color: #991b1b; margin: 0;">You haven't earned any certificates yet. Complete a course to receive
+                your first one!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Edit Module | LearnTrust{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .builder-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn-submit {
+        width: auto;
+        padding: 1rem 2rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, var(--primary) 0%, #6f49b9 100%);
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .module-section {
+        display: none;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="builder-card">
+                <h2 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">Edit Module</h2>
+                <p style="color: #64748b; margin-bottom: 2.5rem;">Update module details</p>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label>Module Title</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Enter module title" value="{{ module.title }}">
+                    </div>
+
+                    <!-- Video Section -->
+                    {% if module.type == "video" %}
+                    <div id="videoSection" class="module-section" style="display: block;">
+                        <h3>Video Module</h3>
+                        {% if module.video_file %}
+                        <p>Current video: {{ module.video_file.name }}</p>
+                        {% endif %}
+                        <div class="form-group">
+                            <label>Upload New Video File (optional)</label>
+                            <input type="file" name="video" class="form-control" accept="video/*">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Theory Section -->
+                    {% if module.type == "theory" %}
+                    <div id="theorySection" class="module-section" style="display: block;">
+                        <h3>Theory Module</h3>
+                        <div class="form-group">
+                            <label>Content</label>
+                            <textarea name="content" class="form-control" placeholder="Enter theory content">{{ module.content }}</textarea>
+                        </div>
+                        {% if module.file %}
+                        <p>Current file: {{ module.file.name }}</p>
+                        {% endif %}
+                        <div class="form-group">
+                            <label>Upload New File (PDF/Image) (optional)</label>
+                            <input type="file" name="file" class="form-control" accept=".pdf,image/*">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Quiz Section -->
+                    {% if module.type == "quiz" %}
+                    <div id="quizSection" class="module-section" style="display: block;">
+                        <h3>Quiz Module</h3>
+                        <div class="form-group">
+                            <label>Question</label>
+                            <input type="text" name="question" class="form-control" placeholder="Enter quiz question" value="{{ module.question }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Option A</label>
+                            <input type="text" name="a" class="form-control" placeholder="Option A" value="{{ module.option_a }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Option B</label>
+                            <input type="text" name="b" class="form-control" placeholder="Option B" value="{{ module.option_b }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Option C</label>
+                            <input type="text" name="c" class="form-control" placeholder="Option C" value="{{ module.option_c }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Option D</label>
+                            <input type="text" name="d" class="form-control" placeholder="Option D" value="{{ module.option_d }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Correct Answer</label>
+                            <select name="correct" class="form-control">
+                                <option value="A" {% if module.correct_answer == "A" %}selected{% endif %}>A</option>
+                                <option value="B" {% if module.correct_answer == "B" %}selected{% endif %}>B</option>
+                                <option value="C" {% if module.correct_answer == "C" %}selected{% endif %}>C</option>
+                                <option value="D" {% if module.correct_answer == "D" %}selected{% endif %}>D</option>
+                            </select>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Assignment Section -->
+                    {% if module.type == "assignment" %}
+                    <div id="assignmentSection" class="module-section" style="display: block;">
+                        <h3>Assignment Module</h3>
+                        {% if module.assignment_task_file %}
+                        <p style="margin-bottom: 1rem; color: var(--primary); font-weight: 600;">
+                            Current Task: <a href="{{ module.assignment_task_file.url }}" target="_blank">View Task PDF</a>
+                        </p>
+                        {% endif %}
+                        <div class="form-group">
+                            <label>Upload New Task PDF (optional)</label>
+                            <input type="file" name="assignment_file" class="form-control" accept="application/pdf">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn-submit">Update Module</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

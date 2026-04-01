@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div style="display: flex;">
+    {% include 'management/sidebar.html' %}
+    <div style="margin-left: 260px; padding: 2.5rem; width: 100%; background: #f8fafc; min-height: 100vh;">
+        <div style="background: white; border-radius: 20px; padding: 2rem; border: 1px solid #e2e8f0;">
+            <h1 style="margin-top: 0;">Certificate Registry</h1>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="text-align: left; color: #64748b;">
+                        <th style="padding-bottom: 0.75rem;">Certificate</th>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    <tr style="border-top: 1px solid #f1f5f9;">
+                        <td style="padding: 1rem 0;">{{ cert.certificate_number }}</td>
+                        <td>{{ cert.student.username }}</td>
+                        <td>{{ cert.course.title }}</td>
+                        <td>
+                            {% if cert.is_active %}
+                            <span style="color: #047857; font-weight: 700;">Active</span>
+                            {% else %}
+                            <span style="color: #b91c1c; font-weight: 700;">Revoked</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cert.is_active %}
+                            <form method="post" action="{% url 'management:revoke_certificate' cert.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="reason" value="Revoked through registry">
+                                <button type="submit" style="padding: 0.55rem 0.9rem; border-radius: 10px; border: none; background: #fee2e2; color: #b91c1c; font-weight: 700;">Revoke</button>
+                            </form>
+                            {% else %}
+                            <span style="color: #64748b;">{{ cert.revoke_reason }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="padding: 1rem 0;">No certificates issued yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

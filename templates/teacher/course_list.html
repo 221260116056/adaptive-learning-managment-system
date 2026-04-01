@@ -1,0 +1,164 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}My Courses | Teacher Panel{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+        vertical-align: top;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-edit { background: #eff6ff; color: #2563eb; }
+    .btn-students { background: #f0fdf4; color: #16a34a; }
+    .btn-sync { background: #fff7ed; color: #c2410c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark);">Total Courses ({{ courses.count }})</h1>
+                <a href="{% url 'teacher:course_create' %}" style="padding: 0.8rem 1.5rem; background: var(--primary); color: white; border-radius: 12px; text-decoration: none; font-weight: 600;">+ Create New</a>
+            </div>
+
+            <div class="table-card">
+                {% if messages %}
+                <div style="display: grid; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    {% for message in messages %}
+                    <div style="padding: 0.9rem 1rem; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; color: #334155;">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Course Title</th>
+                            <th>Students</th>
+                            <th>Moodle Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ course.title }}</td>
+                            <td>{{ course.student_count }} enrolled</td>
+                            <td>
+                                {% if course.moodle_sync_status == 'synced' %}
+                                <div><span style="color: var(--success);">●</span> Synced to Moodle</div>
+                                <div style="font-size: 0.8rem; color: #64748b;">Course ID: {{ course.moodle_course_id }}</div>
+                                {% elif course.moodle_sync_status == 'failed' %}
+                                <div><span style="color: #dc2626;">●</span> Sync failed</div>
+                                <div style="font-size: 0.8rem; color: #64748b; max-width: 280px;">{{ course.moodle_last_error|default:"Unknown Moodle error" }}</div>
+                                {% else %}
+                                <div><span style="color: #d97706;">●</span> Pending sync</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'teacher:course_edit' course.id %}" class="btn-action btn-edit">Edit Course</a>
+                                <a href="{% url 'teacher:course_students' course.id %}" class="btn-action btn-students">View Students</a>
+                                {% if course.moodle_sync_status != 'synced' %}
+                                <a href="{% url 'teacher:sync_course_to_moodle' course.id %}" class="btn-action btn-sync">Sync To Moodle</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: #64748b;">No courses found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer class="footer">
+            &copy; 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

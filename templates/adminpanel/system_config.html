@@ -1,0 +1,48 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}System Config{% endblock %}
+{% block page_title %}System Configuration{% endblock %}
+{% block page_subtitle %}Update operational settings for the LMS platform{% endblock %}
+
+{% block content %}
+<form method="post" class="card">
+    {% csrf_token %}
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="platform_name">Platform Name</label>
+            <input id="platform_name" type="text" name="platform_name" value="{{ config.platform_name }}">
+        </div>
+        <div class="form-group">
+            <label for="certificate_signer">Certificate Signer</label>
+            <input id="certificate_signer" type="text" name="certificate_signer" value="{{ config.certificate_signer }}">
+        </div>
+        <div class="form-group">
+            <label for="email_from_address">Email From Address</label>
+            <input id="email_from_address" type="email" name="email_from_address" value="{{ config.email_from_address }}">
+        </div>
+        <div class="form-group">
+            <label for="video_host">Video Host</label>
+            <input id="video_host" type="text" name="video_host" value="{{ config.video_host }}">
+        </div>
+        <div class="form-group">
+            <label for="smtp_host">SMTP Host</label>
+            <input id="smtp_host" type="text" name="smtp_host" value="{{ config.smtp_host }}">
+        </div>
+        <div class="form-group">
+            <label for="smtp_port">SMTP Port</label>
+            <input id="smtp_port" type="number" name="smtp_port" value="{{ config.smtp_port }}">
+        </div>
+    </div>
+
+    <div style="margin-top: 18px; display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:10px; font-weight:700;">
+            <input type="checkbox" name="maintenance_mode" {% if config.maintenance_mode %}checked{% endif %}>
+            Maintenance Mode
+        </label>
+    </div>
+
+    <div style="margin-top: 24px;">
+        <button class="btn primary" type="submit">Save Configuration</button>
+    </div>
+</form>
+{% endblock %}

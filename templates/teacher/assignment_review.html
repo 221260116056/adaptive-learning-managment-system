@@ -1,0 +1,215 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Assignment Submissions | LearnTrust{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .layout { display: flex; }
+    .main-wrapper { 
+        flex: 1; 
+        margin-left: 260px; 
+        background: #f8fafc; 
+        min-height: 100vh;
+        padding: 3rem;
+    }
+    .page-header {
+        margin-bottom: 2.5rem;
+    }
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin: 0;
+    }
+    .page-header p {
+        color: #64748b;
+        margin: 0.5rem 0 0;
+    }
+    .submission-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s ease;
+    }
+    .submission-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.04);
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .student-info h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    .student-info p {
+        margin: 0.2rem 0 0;
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+    .status-badge {
+        padding: 0.4rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .status-pending { background: #fffbeb; color: #d97706; }
+    .status-approved { background: #ecfdf5; color: #059669; }
+    .status-rejected { background: #fef2f2; color: #dc2626; }
+
+    .card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    .info-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+    .link-group a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .link-group a:hover { text-decoration: underline; }
+
+    .review-form {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+    .feedback-area {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+        resize: vertical;
+        min-height: 80px;
+    }
+    .action-btns {
+        display: flex;
+        gap: 1rem;
+    }
+    .btn-review {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+    .btn-approve { background: #10b981; color: white; }
+    .btn-approve:hover { background: #059669; }
+    .btn-reject { background: #ef4444; color: white; }
+    .btn-reject:hover { background: #dc2626; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 5rem;
+        background: white;
+        border-radius: 20px;
+        border: 2px dashed #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <div class="page-header">
+            <h1>Assignment Submissions</h1>
+            <p>Review student work and provide feedback</p>
+        </div>
+
+        {% if submissions %}
+            {% for sub in submissions %}
+            <div class="submission-card">
+                <div class="card-header">
+                    <div class="student-info">
+                        <h3>{{ sub.student.get_full_name|default:sub.student.username }}</h3>
+                        <p>Module: <strong>{{ sub.module.title }}</strong> | Course: {{ sub.module.course.title }}</p>
+                    </div>
+                    <span class="status-badge status-{{ sub.status }}">
+                        {{ sub.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div class="info-group">
+                        <label>Submission Links</label>
+                        <div class="link-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            {% if sub.github_link %}
+                            <a href="{{ sub.github_link }}" target="_blank">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"></path></svg>
+                                GitHub Repository
+                            </a>
+                            {% endif %}
+                            {% if sub.google_drive_link %}
+                            <a href="{{ sub.google_drive_link }}" target="_blank">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path></svg>
+                                Google Drive Folder
+                            </a>
+                            {% endif %}
+                            {% if not sub.github_link and not sub.google_drive_link %}
+                                <span style="color: #94a3b8; font-style: italic;">No links provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <label>Submission Date</label>
+                        <p style="margin: 0; font-size: 0.95rem; font-weight: 500;">{{ sub.submitted_at|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'teacher:review_submission_api' sub.id %}" class="review-form">
+                    {% csrf_token %}
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Teacher Feedback</label>
+                    <textarea name="feedback" class="feedback-area" placeholder="Enter feedback for the student...">{{ sub.feedback|default:'' }}</textarea>
+                    
+                    <div class="action-btns">
+                        <button type="submit" name="status" value="approved" class="btn-review btn-approve">
+                            Approve Assignment
+                        </button>
+                        <button type="submit" name="status" value="rejected" class="btn-review btn-reject">
+                            Request Revision
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📬</div>
+                <h2 style="margin: 0; font-weight: 800; color: var(--dark);">No Submissions Yet</h2>
+                <p style="color: #64748b;">Submissions will appear here when students complete their assignments.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Enrolled Students | {{ course.title }}{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for teacher pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1.25rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+
+    .student-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div style="margin-bottom: 2rem;">
+                <a href="{% url 'teacher:course_list' %}" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">← Back to Courses</a>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem;">Students Enrolled in "{{ course.title }}"</h1>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Email</th>
+                            <th>Enrolled At</th>
+                            <th>Progress</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr>
+                            <td>
+                                <div class="student-info">
+                                    <div class="avatar">{{ enrollment.student.username|first|upper }}</div>
+                                    <div style="font-weight: 700;">{{ enrollment.student.username }}</div>
+                                </div>
+                            </td>
+                            <td>{{ enrollment.student.email }}</td>
+                            <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div style="width: 100px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
+                                    <div style="width: 45%; height: 100%; background: var(--success);"></div>
+                                </div>
+                                <span style="font-size: 0.75rem; color: #64748b;">45% Completed</span>
+                            </td>
+                            <td>
+                                <button style="background: none; border: 1px solid #e2e8f0; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">View Profile</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: #64748b;">No students found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact LearnTrust</title>
+    <style>
+        *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef4fb;color:#1b1d3b}.container{width:min(1460px,calc(100% - 80px));margin:0 auto}.site-header{background:#fff;border-bottom:1px solid #d9e3f0;box-shadow:0 6px 18px rgba(15,23,42,.06)}.nav{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:#1b1d3b}.brand-badge{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:24px;font-weight:800;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%)}.brand-text{display:flex;flex-direction:column;line-height:1}.brand-title{font-size:24px;font-weight:800;color:#5f79ef}.brand-subtitle{margin-top:4px;font-size:12px;font-weight:800;letter-spacing:.06em;color:#6b7280}.nav-links{display:flex;align-items:center;gap:40px;font-size:18px;font-weight:700}.nav-links a{text-decoration:none;color:#4b5563;padding-bottom:10px}.nav-links a.active{color:#6a7bf7;border-bottom:3px solid #6a7bf7}.nav-actions{display:flex;align-items:center;gap:14px}.login-btn{display:inline-flex;align-items:center;justify-content:center;min-width:122px;padding:16px 26px;border-radius:12px;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;text-decoration:none;font-size:18px;font-weight:800;box-shadow:0 12px 22px rgba(106,123,247,.28)}.signup-btn{display:inline-flex;align-items:center;justify-content:center;min-width:132px;padding:16px 26px;border-radius:12px;border:1px solid #d9e3f0;background:white;color:#1b1d3b;text-decoration:none;font-size:18px;font-weight:800}
+        .section{padding:64px 0}.hero h1{font-size:58px;margin:0 0 16px}.hero p{font-size:24px;line-height:1.6;color:#4e6786;max-width:900px;margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:38px}.card{background:#fff;border:1px solid #d9e3f0;border-radius:22px;padding:30px;box-shadow:0 12px 32px rgba(15,23,42,.06);display:flex;flex-direction:column}.card h3{margin-top:0;font-size:28px}.card p{margin:0 0 14px;color:#4e6786;line-height:1.8;font-size:18px}.cta{display:inline-flex;padding:14px 20px;border-radius:12px;background:#3363dd;color:#fff;text-decoration:none;font-weight:800}
+        .form-group{margin-bottom:20px;text-align:left}.form-group label{display:block;margin-bottom:8px;font-weight:700;color:#374151;font-size:16px}.form-control{width:100%;padding:14px 18px;border-radius:12px;border:1px solid #d9e3f0;background:#f9fafb;font-size:16px;color:#111827;transition:all .2s;font-family:inherit}textarea.form-control{resize:vertical}.form-control:focus{outline:none;border-color:#6a7bf7;background:#fff;box-shadow:0 0 0 4px rgba(106,123,247,.1)}.submit-btn{width:100%;padding:16px;border-radius:12px;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;border:none;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(106,123,247,.2);transition:all .2s}.submit-btn:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(106,123,247,.3)}
+        .alert-msg{width:100%;padding:14px 20px;border-radius:12px;margin-bottom:20px;font-weight:700;display:block}
+        @media (max-width:760px){.container{width:min(100%,calc(100% - 32px))}.nav{flex-wrap:wrap;justify-content:center}.nav-links{gap:22px;flex-wrap:wrap;justify-content:center}.grid{grid-template-columns:1fr}.hero h1{font-size:44px}.hero p{font-size:20px}}
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container nav">
+            <a href="{% url 'home' %}" class="brand">
+                <span class="brand-badge">AL</span>
+                <span class="brand-text">
+                    <span class="brand-title">Adaptive</span>
+                    <span class="brand-subtitle">LEARNING LMS</span>
+                </span>
+            </a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'landing_courses' %}">Courses</a>
+                <a href="{% url 'landing_about' %}">About</a>
+                <a href="{% url 'landing_contact' %}" class="active">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="{% url 'signup' %}" class="signup-btn">Sign Up</a>
+                <a href="{% url 'login' %}" class="login-btn">Login</a>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <section class="section hero">
+            <h1>Contact LearnTrust</h1>
+            <p>Reach the LMS team for learner support, instructor onboarding, or platform setup help.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Support Desk</h3>
+                    <p>Email: {{ contact_email }}</p>
+                    <p>Phone: {{ contact_phone }}</p>
+                    <p>Live platform stats: {{ stats.learners }} students, {{ stats.courses }} active courses, {{ stats.teachers }} teachers.</p>
+                    <div style="margin-top:30px; padding-top:20px; border-top:1px solid #f3f4f6;">
+                        <strong>Operating Hours:</strong><br>
+                        9:00 AM - 6:00 PM (IST)
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Send us a Message</h3>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert-msg" style="
+                                {% if message.tags == 'success' %} background: #ecfdf5; color: #10b981; border: 1px solid #10b981;
+                                {% else %} background: #fef2f2; color: #ef4444; border: 1px solid #ef4444; {% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form action="." method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label>Your Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Entar your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea name="message" rows="4" class="form-control" placeholder="How can we help you?" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

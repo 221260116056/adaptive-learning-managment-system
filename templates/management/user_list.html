@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management | Admin Panel{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for admin pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem;
+    }
+
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .badge-student { background: #dcfce7; color: #166534; }
+    .badge-teacher { background: #dbeafe; color: #1e40af; }
+    .badge-admin { background: #fef2f2; color: #991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'management/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 2rem;">User Directory</h1>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge badge-{{ user.studentprofile.role }}">
+                                    {{ user.studentprofile.role }}
+                                </span>
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <button style="border: none; background: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer;">Manage</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Administrator Control Panel.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

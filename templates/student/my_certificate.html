@@ -1,0 +1,23 @@
+{% extends 'student/base.html' %}
+
+{% block content %}
+<div style="margin: 2rem;">
+    <h2>Certificate Status</h2>
+    <p>Course: <strong>{{ certificate.course.title }}</strong></p>
+    <p>Status: <strong>{{ certificate.get_status_display }}</strong></p>
+
+    {% if certificate.status == 'approved' %}
+        {% if certificate.certificate_file %}
+            <a href="{{ certificate.certificate_file.url }}" class="btn btn-primary">Download Certificate</a>
+        {% else %}
+            <p>Certificate approved. View in your dashboard or verify at <a href="{% url 'verify_certificate' token=certificate.verification_token %}">verify page</a>.</p>
+        {% endif %}
+    {% elif certificate.status == 'pending_teacher' %}
+        <p>Your certificate is waiting for teacher approval.</p>
+    {% elif certificate.status == 'pending_admin' %}
+        <p>Your certificate has teacher approval and is pending admin confirmation.</p>
+    {% elif certificate.status == 'rejected' %}
+        <p>Your certificate request has been rejected. Please contact support.</p>
+    {% endif %}
+</div>
+{% endblock %}

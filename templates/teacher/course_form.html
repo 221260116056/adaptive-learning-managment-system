@@ -1,0 +1,212 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}{% if course %}Edit{% else %}Create{% endif %} Course | Teacher Panel{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Global override for teacher pages */
+    .content {
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .form-card {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--dark);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 1rem;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.3);
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <!-- Sidebar -->
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div class="form-card">
+                <div style="margin-bottom: 2rem; text-align: center;">
+                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark);">
+                        {% if course %}Edit Existing Course{% else %}Create New Course{% endif %}
+                    </h1>
+                    <p style="color: #64748b;">This course will be automatically synced with Moodle</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="full_name">Course Full Name</label>
+                        <input type="text" name="full_name" id="full_name" class="form-control" value="{{ course.title }}" required placeholder="e.g. Introduction to Python Programming">
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="short_name">Course Short Name</label>
+                            <input type="text" name="short_name" id="short_name" class="form-control" value="{{ course.short_name }}" required placeholder="e.g. PYTHON101">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="category_id">Course Category</label>
+                            <select name="category_id" id="category_id" class="form-control">
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if course.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% empty %}
+                                <option value="1">General</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="visibility">Course Visibility</label>
+                            <select name="visibility" id="visibility" class="form-control">
+                                <option value="1" {% if course.visibility %}selected{% endif %}>Show</option>
+                                <option value="0" {% if not course.visibility %}selected{% endif %}>Hide</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="start_date">Course Start Date</label>
+                            <input type="datetime-local" name="start_date" id="start_date" class="form-control" value="{{ course.start_date|date:'Y-m-d\TH:i' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="thumbnail">Course Thumbnail (Optional)</label>
+                        <input type="file" name="thumbnail" id="thumbnail" class="form-control" accept="image/*">
+                        {% if course.thumbnail %}
+                            <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #64748b;">
+                                Current thumbnail: {{ course.thumbnail.name }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="signer_name">Coordinator / Authority</label>
+                            <input type="text" name="signer_name" id="signer_name" class="form-control" value="{% if course %}{{ course.certificate_signer_name }}{% else %}Coordinator / Authority{% endif %}" placeholder="Enter name">
+                        </div>
+                        <div class="form-group">
+                            <label for="signer_title">Head of Department</label>
+                            <input type="text" name="signer_title" id="signer_title" class="form-control" value="{% if course %}{{ course.certificate_signer_title }}{% else %}Head of Department{% endif %}" placeholder="Enter title">
+                        </div>
+                    </div>
+
+                    <label style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; font-weight: 600; color: var(--dark);">
+                        <input type="checkbox" name="certificate_auto_issue" {% if course.certificate_auto_issue or not course %}checked{% endif %}>
+                        Auto-issue certificates on full completion
+                    </label>
+
+                    <button type="submit" class="btn-submit">
+                        {% if course %}Update and Sync{% else %}Create and Sync to Moodle{% endif %}
+                    </button>
+
+                    <a href="{% url 'teacher:dashboard' %}"
+                        style="display: block; text-align: center; margin-top: 1.5rem; color: #64748b; text-decoration: none; font-size: 0.9rem;">Cancel
+                        and Go Back</a>
+                </form>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

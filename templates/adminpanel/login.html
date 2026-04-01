@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console Login</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, #2b3a67 0%, #0f172a 55%, #050814 100%);
+            color: #fff;
+        }
+        .card {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 34px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+            backdrop-filter: blur(12px);
+        }
+        h1 { margin: 0 0 8px; font-size: 34px; }
+        p { margin: 0 0 24px; color: rgba(255,255,255,0.72); line-height: 1.6; }
+        label { display: block; font-weight: 700; margin-bottom: 8px; }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            margin-bottom: 18px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            border: 0;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .messages { margin-bottom: 16px; }
+        .message {
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: rgba(239, 68, 68, 0.18);
+            color: #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Admin Console</h1>
+        <p>Authenticate into the private operations panel with an administrator identity.</p>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <label for="identity">Admin Identity</label>
+            <input id="identity" name="identity" type="text" placeholder="username or email" required>
+
+            <label for="password">Universal Key</label>
+            <input id="password" name="password" type="password" placeholder="password" required>
+
+            <button type="submit">Authenticate Session</button>
+        </form>
+    </div>
+</body>
+</html>

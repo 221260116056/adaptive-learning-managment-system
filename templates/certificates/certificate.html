@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Certificate</title>
+
+<style>
+@page {
+    size: A4 landscape;
+    margin: 30pt;
+}
+
+body {
+    margin: 0;
+    font-family: "DejaVu Sans", Arial, sans-serif;
+    color: #1f2937;
+}
+
+/* WRAPPER */
+.wrapper {
+    width: 100%;
+    text-align: center;
+}
+
+/* TOP SPACE */
+.top-space {
+    height: 50pt;
+}
+
+/* TYPOGRAPHY */
+.serif {
+    font-family: "DejaVu Serif", Georgia, serif;
+}
+
+/* SPACING */
+.gap-xs { margin-top: 4pt; }
+.gap-sm { margin-top: 8pt; }
+.gap-md { margin-top: 14pt; }
+.gap-lg { margin-top: 24pt; }
+
+/* CENTER */
+.center {
+    width: 100%;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <div class="top-space"></div>
+
+    <!-- CERTIFIED -->
+    <div class="center" style="
+        font-size: 40pt;
+        font-weight: 700;
+        color: #e6d7a4;
+        letter-spacing: 4pt;
+    ">
+        CERTIFIED
+    </div>
+
+    <div class="gap-sm"></div>
+
+    <!-- SUBTITLE -->
+    <div class="center" style="
+        font-size: 18pt;
+        letter-spacing: 1.5pt;
+        color: #b08d2a;
+        font-weight: 600;
+        text-transform: uppercase;
+    ">
+        Adaptive Learning Management System
+    </div>
+
+    <div class="gap-md"></div>
+
+    <!-- 🔥 MAIN TITLE (FIXED CENTER) -->
+    <div style="
+        width: 100%;
+        text-align: center;
+        margin: 0 auto;
+    ">
+        <div class="serif" style="
+            display: inline-block;
+            font-size: 30pt;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+        ">
+            Certificate of Completion
+        </div>
+    </div>
+
+    <div class="gap-md"></div>
+
+    <!-- TEXT -->
+    <div class="center" style="font-size: 13pt; color: #4b5563;">
+        This is to proudly certify that
+    </div>
+
+    <div class="gap-sm"></div>
+
+    <!-- NAME -->
+    <div class="center serif" style="
+        font-size: 30pt;
+        font-weight: 700;
+        color: #111827;
+    ">
+        {{ user.get_full_name|default:user.username }}
+    </div>
+
+    <div class="gap-sm"></div>
+
+    <div class="center" style="font-size: 13pt; color: #4b5563;">
+        has successfully completed the course
+    </div>
+
+    <div class="gap-sm"></div>
+
+    <!-- COURSE -->
+    <div class="center" style="
+        font-size: 20pt;
+        font-weight: 700;
+        color: #b08d2a;
+    ">
+        {{ course.title }}
+    </div>
+
+    <div class="gap-lg"></div>
+
+    <!-- DESCRIPTION -->
+    <div style="
+        width: 65%;
+        margin: 0 auto;
+        font-size: 11pt;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+    ">
+        Awarded in recognition of dedication, successful course completion, and
+        fulfillment of all required learning modules and assessments under the
+        standards of this Learning Management System.
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<table width="100%" style="margin-top: 50pt;">
+<tr>
+
+<td width="33%" align="left" style="font-size: 11pt; line-height: 1.8;">
+    <b>Date:</b> {{ certificate.issued_at|date:"F d, Y" }}<br>
+    <b>Certificate ID:</b> {{ certificate.certificate_id }}
+</td>
+
+<td width="34%" align="center">
+    <img src="data:image/png;base64,{{ qr_code_base64 }}" width="90"><br>
+    <span style="font-size:10pt;color:#6b7280;">Scan to verify</span>
+</td>
+
+<td width="33%" align="right" style="font-size: 11pt;">
+    <div style="margin-bottom: 25pt;">
+        ______________________
+    </div>
+    <b>Authorized Signature</b><br>
+    Academic Director
+</td>
+
+</tr>
+</table>
+
+</body>
+</html>

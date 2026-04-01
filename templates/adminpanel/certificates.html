@@ -1,0 +1,70 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Certificates{% endblock %}
+{% block page_title %}Certificates Management{% endblock %}
+{% block page_subtitle %}View and revoke issued learner certificates{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3 style="margin: 16px;">Pending Admin Approvals</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cert in pending_requests %}
+            <tr>
+                <td>{{ cert.user.username }}</td>
+                <td>{{ cert.course.title }}</td>
+                <td>{{ cert.get_status_display }}</td>
+                <td>
+                    <a class="btn secondary" href="{% url 'adminpanel:approve_certificate' cert.id %}">Approve</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No pending admin approvals.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin: 16px;">Issued Certificates</h3>
+    <table>
+            {% for certificate in certificates %}
+            <tr>
+                <td>{{ certificate.student.email|default:certificate.student.username }}</td>
+                <td>{{ certificate.course.title }}</td>
+                <td>{{ certificate.issued_at|date:"M d, Y H:i" }}</td>
+                <td>
+                    {% if certificate.is_active %}
+                    <span class="badge success">Issued</span>
+                    {% else %}
+                    <span class="badge danger">Revoked</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <a class="btn secondary" href="{% url 'adminpanel:certificate_view' certificate.id %}" target="_blank">View</a>
+                        {% if certificate.is_active %}
+                        <form method="post" action="{% url 'adminpanel:revoke_certificate' certificate.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="reason" value="Revoked by private admin panel">
+                            <button class="btn danger" type="submit">Revoke</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty">No certificates have been issued yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

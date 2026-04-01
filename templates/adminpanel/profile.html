@@ -1,0 +1,85 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Admin Profile{% endblock %}
+{% block page_title %}Profile{% endblock %}
+{% block page_subtitle %}Current admin identity and recent private-panel activity{% endblock %}
+
+{% block content %}
+<div class="grid" style="grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);">
+    <div class="card">
+        <h3 style="margin-top: 0;">Identity</h3>
+        <table>
+            <tbody>
+                <tr>
+                    <th style="width: 180px;">Username</th>
+                    <td>{{ request.user.username }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ request.user.email|default:'-' }}</td>
+                </tr>
+                <tr>
+                    <th>Full Name</th>
+                    <td>{{ request.user.get_full_name|default:'-' }}</td>
+                </tr>
+                <tr>
+                    <th>Role</th>
+                    <td>
+                        {% if request.user.is_superuser %}
+                        <span class="badge primary">Superuser</span>
+                        {% elif profile %}
+                        <span class="badge primary">{{ profile.role|title }}</span>
+                        {% else %}
+                        <span class="badge warning">Unassigned</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Date Joined</th>
+                    <td>{{ request.user.date_joined|date:"M d, Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Session Access</th>
+                    <td><span class="badge success">Private Admin Active</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0;">Quick Actions</h3>
+        <div style="display: grid; gap: 12px;">
+            <a class="btn primary" href="{% url 'adminpanel:users' %}">Manage Users</a>
+            <a class="btn secondary" href="{% url 'adminpanel:audit_logs' %}">Open Audit Logs</a>
+            <a class="btn secondary" href="{% url 'adminpanel:system_config' %}">System Config</a>
+            <a class="btn danger" href="{% url 'adminpanel:logout' %}">Sign Out</a>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 18px;">
+    <h3 style="margin-top: 0;">Recent Activity</h3>
+    {% if audit_events %}
+    <table>
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in audit_events %}
+            <tr>
+                <td>{{ log.action }}</td>
+                <td>{{ log.details|default:'-' }}</td>
+                <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No recent admin actions recorded for this account.</div>
+    {% endif %}
+</div>
+{% endblock %}

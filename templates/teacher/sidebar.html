@@ -1,0 +1,204 @@
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="logo-area" style="text-decoration: none;">
+            <span class="brand-badge">AL</span>
+            <div class="logo-text">
+                <span class="brand-name">Adaptive</span>
+                <span class="brand-sub">LEARNING LMS</span>
+            </div>
+        </a>
+        <p class="sidebar-desc">Instructor Control Panel</p>
+    </div>
+    
+    <nav class="sidebar-menu">
+        <a href="{% url 'teacher:dashboard' %}" class="sidebar-link {% if active_menu == 'dashboard' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            </span>
+            <span class="text">Dashboard</span>
+        </a>
+        <a href="{% url 'teacher:course_create' %}" class="sidebar-link {% if active_menu == 'courses' and not course %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
+            </span>
+            <span class="text">Create Course</span>
+        </a>
+        <a href="{% url 'teacher:upload_lesson' %}" class="sidebar-link {% if active_menu == 'upload_lesson' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            </span>
+            <span class="text">Upload Lesson</span>
+        </a>
+        <a href="{% url 'teacher:review_assignments' %}" class="sidebar-link {% if active_menu == 'assignments' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 9l3 3m0 0l3-3m-3 3V10"></path></svg>
+            </span>
+            <span class="text">Assignment Review</span>
+        </a>
+        <a href="{% url 'teacher:video_manager' %}" class="sidebar-link {% if active_menu == 'video_manager' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            </span>
+            <span class="text">Video Manager</span>
+        </a>
+        <a href="{% url 'teacher:teacher_certificates' %}" class="sidebar-link {% if active_menu == 'certificates' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zm0 8h10M7 11V8m10 7h-4m4-3h-4"></path></svg>
+            </span>
+            <span class="text">Certificate Approvals</span>
+        </a>
+        <a href="{% url 'teacher:settings' %}" class="sidebar-link {% if active_menu == 'settings' %}active{% endif %}">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </span>
+            <span class="text">Settings</span>
+        </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}" class="sidebar-link logout-btn">
+            <span class="icon">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </span>
+            <span class="text">Logout</span>
+        </a>
+    </div>
+</aside>
+
+<style>
+    :root {
+        --sidebar-bg: #ffffff;
+        --sidebar-width: 260px;
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --hover-bg: #f8fafc;
+        --transition-speed: 0.25s;
+    }
+
+    .sidebar {
+        background: var(--sidebar-bg);
+        width: var(--sidebar-width);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 10px 0 30px -10px rgba(0, 0, 0, 0.05);
+        padding: 2.5rem 1.25rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        border-right: 1px solid rgba(226, 232, 240, 0.8);
+        z-index: 1100;
+        box-sizing: border-box;
+    }
+
+    .sidebar-header {
+        padding: 0 0.75rem 2.5rem;
+    }
+
+    .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .brand-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        flex-shrink: 0;
+    }
+
+    .logo-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .brand-name {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #667eea;
+        line-height: 1;
+        letter-spacing: -0.5px;
+    }
+
+    .brand-sub {
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+    .sidebar-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 0.2rem 0 0;
+        font-weight: 500;
+        padding-left: 0.2rem;
+    }
+
+    .sidebar-menu {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1.25rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .sidebar-link .icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+    }
+
+    .sidebar-link:hover:not(.active) {
+        background: var(--hover-bg);
+        color: #667eea;
+        padding-left: 1.5rem;
+    }
+
+    .sidebar-link.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 8px 15px -4px rgba(102, 126, 234, 0.4);
+    }
+
+    .sidebar-footer {
+        margin-top: auto;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .logout-btn {
+        color: #ef4444 !important;
+    }
+
+    .logout-btn:hover {
+        background: #fff1f2 !important;
+        color: #dc2626 !important;
+    }
+</style>

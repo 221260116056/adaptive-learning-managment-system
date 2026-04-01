@@ -1,0 +1,50 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Teacher Approvals{% endblock %}
+{% block page_title %}Teacher Account Approvals{% endblock %}
+{% block page_subtitle %}Review and approve pending teacher registrations{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="toolbar">
+        <h3 style="margin: 0;">Pending Teacher Approvals</h3>
+        <span class="badge primary">{{ pending_teachers|length }} pending</span>
+    </div>
+
+    {% if pending_teachers %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Joined Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in pending_teachers %}
+            <tr>
+                <td>
+                    <strong>{{ profile.user.get_full_name|default:profile.user.username }}</strong>
+                </td>
+                <td>{{ profile.user.email }}</td>
+                <td>{{ profile.user.date_joined|date:"M d, Y" }}</td>
+                <td>
+                    <span class="badge warning">{{ profile.approval_status|title }}</span>
+                </td>
+                <td>
+                    <a href="{% url 'adminpanel:approve_teacher' profile.user.id %}" class="btn success small" onclick="return confirm('Approve this teacher?')">Approve</a>
+                    <a href="{% url 'adminpanel:reject_teacher' profile.user.id %}" class="btn danger small" onclick="return confirm('Reject this teacher?')">Reject</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 2rem; color: #6b7280;">
+        <p>No pending teacher approvals at this time.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
