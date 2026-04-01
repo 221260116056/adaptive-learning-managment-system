@@ -121,20 +121,16 @@ class Module(models.Model):
 
     # Video fields
     video_file = models.FileField(upload_to="videos/raw/", null=True, blank=True)
-    video_url = models.URLField(max_length=500, blank=True, null=True)
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="[DEPRECATED] Use local video_file instead.")
     dash_manifest = models.CharField(max_length=255, blank=True)
 
     # Theory fields
     content = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to="theory/", null=True, blank=True)
 
-    # Quiz fields
-    question = models.TextField(blank=True, null=True)
-    option_a = models.CharField(max_length=255, blank=True)
-    option_b = models.CharField(max_length=255, blank=True)
-    option_c = models.CharField(max_length=255, blank=True)
-    option_d = models.CharField(max_length=255, blank=True)
-    correct_answer = models.CharField(max_length=1, blank=True)
+    # Quiz fields (Legacy - now handled by Question model)
+    # Fields removed: question, option_a, option_b, option_c, option_d, correct_answer
+
 
     # Assignment fields
     assignment_task_file = models.FileField(upload_to="assignments/tasks/", null=True, blank=True)
@@ -145,49 +141,17 @@ class Module(models.Model):
     def __str__(self):
         return f"{self.course.title} - {self.title}"
 
-    def __str__(self):
-        return f"{self.quiz.module.title} - {self.question_text[:50]}"
+    def save(self, *args, **kwargs):
+        if not self.order:
+            max_order = self.__class__.objects.filter(course=self.course).aggregate(models.Max('order'))['order__max']
+            self.order = (max_order or 0) + 1
+        super().save(*args, **kwargs)
 
-
-# ---------------------------------
-# 5️⃣ Existing support models (legacy compatibility)
-# ---------------------------------
-class QuizQuestion(models.Model):
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='legacy_quiz_questions')
-    question_text = models.TextField()
-    option_a = models.CharField(max_length=500)
-    option_b = models.CharField(max_length=500)
-    option_c = models.CharField(max_length=500)
-    option_d = models.CharField(max_length=500)
-    correct_answer = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')])
-    order = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"{self.module.title} - Q{self.order + 1}"
-
-    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='quiz_questions')
-    question_text = models.TextField()
-    option_a = models.CharField(max_length=500)
-    option_b = models.CharField(max_length=500)
-    option_c = models.CharField(max_length=500)
-    option_d = models.CharField(max_length=500)
-    correct_answer = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')])
-    order = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['order']
-
-    def __str__(self):
-        return f"{self.module.title} - Q{self.order + 1}"
 
 # ---------------------------------
 # 5️⃣ Student Progress
 # ---------------------------------
+
 class StudentProgress(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
@@ -237,23 +201,54 @@ class Quiz(models.Model):
 
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
-    text = models.CharField(max_length=255)
+    text = models.TextField()
+    option_a = models.CharField(max_length=500, default="")
+    option_b = models.CharField(max_length=500, default="")
+    option_c = models.CharField(max_length=500, default="")
+    option_d = models.CharField(max_length=500, default="")
+    correct_answer = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')], default="A")
+
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
-        return self.text
+        return f"{self.quiz.module.title} - Q{self.order + 1}"
 
 
+# Legacy - no longer used if flattening into Question
 class Option(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options_legacy')
     text = models.CharField(max_length=255)
     is_correct = models.BooleanField(default=False)
 
     def __str__(self):
         return self.text
 
+
+# ---------------------------------
+# 5️⃣ Quiz Progress (Adaptive)
+# ---------------------------------
+class QuestionAttempt(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='question_attempts')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='user_attempts')
+    attempts_count = models.PositiveIntegerField(default=0)
+    is_correct = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+    last_attempt_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'question')
+
+    def __str__(self):
+        return f"{self.student.username} - {self.question.text[:30]} - {self.attempts_count} attempts"
+
+
 # ---------------------------------
 # 6️⃣ Watch Events (append-only)
 # ---------------------------------
+
 class WatchEvent(models.Model):
     EVENT_TYPE_CHOICES = [
         ('play', 'Play'),

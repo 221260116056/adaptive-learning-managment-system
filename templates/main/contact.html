@@ -9,6 +9,8 @@
         .section{padding:64px 0}.hero h1{font-size:58px;margin:0 0 16px}.hero p{font-size:24px;line-height:1.6;color:#4e6786;max-width:900px;margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:38px}.card{background:#fff;border:1px solid #d9e3f0;border-radius:22px;padding:30px;box-shadow:0 12px 32px rgba(15,23,42,.06);display:flex;flex-direction:column}.card h3{margin-top:0;font-size:28px}.card p{margin:0 0 14px;color:#4e6786;line-height:1.8;font-size:18px}.cta{display:inline-flex;padding:14px 20px;border-radius:12px;background:#3363dd;color:#fff;text-decoration:none;font-weight:800}
         .form-group{margin-bottom:20px;text-align:left}.form-group label{display:block;margin-bottom:8px;font-weight:700;color:#374151;font-size:16px}.form-control{width:100%;padding:14px 18px;border-radius:12px;border:1px solid #d9e3f0;background:#f9fafb;font-size:16px;color:#111827;transition:all .2s;font-family:inherit}textarea.form-control{resize:vertical}.form-control:focus{outline:none;border-color:#6a7bf7;background:#fff;box-shadow:0 0 0 4px rgba(106,123,247,.1)}.submit-btn{width:100%;padding:16px;border-radius:12px;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;border:none;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(106,123,247,.2);transition:all .2s}.submit-btn:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(106,123,247,.3)}
         .alert-msg{width:100%;padding:14px 20px;border-radius:12px;margin-bottom:20px;font-weight:700;display:block}
+        .alert-success { background: #ecfdf5; color: #10b981; border: 1px solid #10b981; }
+        .alert-danger { background: #fef2f2; color: #ef4444; border: 1px solid #ef4444; }
         @media (max-width:760px){.container{width:min(100%,calc(100% - 32px))}.nav{flex-wrap:wrap;justify-content:center}.nav-links{gap:22px;flex-wrap:wrap;justify-content:center}.grid{grid-template-columns:1fr}.hero h1{font-size:44px}.hero p{font-size:20px}}
     </style>
 </head>
@@ -54,9 +56,7 @@
                     
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert-msg" style="
-                                {% if message.tags == 'success' %} background: #ecfdf5; color: #10b981; border: 1px solid #10b981;
-                                {% else %} background: #fef2f2; color: #ef4444; border: 1px solid #ef4444; {% endif %}">
+                            <div class="alert-msg {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %}">
                                 {{ message }}
                             </div>
                         {% endfor %}

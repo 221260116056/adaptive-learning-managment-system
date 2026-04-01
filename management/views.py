@@ -309,7 +309,7 @@ def private_admin_certificate_view(request, certificate_id):
         defaults={'certificate_id': issued_certificate.certificate_number},
     )
     verification_url = request.build_absolute_uri(
-        reverse('verify_certificate', kwargs={'token': certificate.verification_token})
+        reverse('verify_certificate', kwargs={'cert_id': certificate.certificate_id})
     )
     qr_buffer = generate_qr_code(verification_url)
     qr_code_base64 = base64.b64encode(qr_buffer.getvalue()).decode('utf-8')
@@ -335,6 +335,33 @@ def private_admin_revoke_certificate(request, certificate_id):
             f'{issued_certificate.certificate_number} for {issued_certificate.student.username}',
         )
         messages.success(request, 'Certificate revoked successfully.')
+    return redirect('adminpanel:certificates')
+
+
+@private_admin_required
+def private_admin_reissue_certificate(request, certificate_id):
+    issued_cert = get_object_or_404(IssuedCertificate, id=certificate_id)
+    if not issued_cert.is_active:
+        # Re-activate in registry
+        issued_cert.is_active = True
+        issued_cert.revoked_at = None
+        issued_cert.revoked_by = None
+        issued_cert.revoke_reason = ''
+        issued_cert.save()
+
+        # Re-activate student's access status
+        from student.models import Certificate
+        cert = Certificate.objects.filter(user=issued_cert.student, course=issued_cert.course).first()
+        if cert:
+            cert.status = 'approved'
+            cert.save(update_fields=['status', 'updated_at'])
+
+        _write_audit_log(
+            request.user, 
+            'Reissued certificate', 
+            f'{issued_cert.certificate_number} for {issued_cert.student.username}'
+        )
+        messages.success(request, f'Certificate {issued_cert.certificate_number} has been successfully reissued.')
     return redirect('adminpanel:certificates')
 
 

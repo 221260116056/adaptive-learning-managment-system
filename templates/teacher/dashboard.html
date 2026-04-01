@@ -407,7 +407,10 @@
                                 <a href="{% url 'teacher:toggle_publish' course.id %}" class="btn-toggle">
                                     {% if course.is_published %}⏸ Unpublish{% else %}▶ Publish{% endif %}
                                 </a>
-                                <button type="button" class="btn-danger" onclick="openDeleteModal({{ course.id }}, '{{ course.title|escapejs }}')">🗑 Delete</button>
+                                <button type="button" class="btn-danger" 
+                                    data-course-id="{{ course.id }}" 
+                                    data-course-title="{{ course.title|escapejs }}"
+                                    onclick="handleDelete(this)">🗑 Delete</button>
                             </div>
                         </div>
                     </div>
@@ -446,6 +449,9 @@
 </div>
 
 <script>
+function handleDelete(btn) {
+    openDeleteModal(btn.dataset.courseId, btn.dataset.courseTitle);
+}
 function openDeleteModal(courseId, courseTitle) {
     document.getElementById('deleteModalMsg').textContent =
         'Are you sure you want to permanently delete "' + courseTitle + '"? This cannot be undone.';

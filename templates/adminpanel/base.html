@@ -296,8 +296,18 @@
             <a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'adminpanel:dashboard' %}">Dashboard</a>
             <a class="nav-link {% if active_menu == 'requests' %}active{% endif %}" href="{% url 'adminpanel:requests' %}">Requests</a>
             <a class="nav-link {% if active_menu == 'users' %}active{% endif %}" href="{% url 'adminpanel:users' %}">Users</a>
-            <a class="nav-link {% if active_menu == 'teacher_approvals' %}active{% endif %}" href="{% url 'adminpanel:teacher_approvals' %}">Teacher Approvals</a>
-            <a class="nav-link {% if active_menu == 'certificates' %}active{% endif %}" href="{% url 'adminpanel:certificates' %}">Certificates</a>
+            <a class="nav-link {% if active_menu == 'teacher_approvals' %}active{% endif %}" href="{% url 'adminpanel:teacher_approvals' %}">
+                Teacher Approvals
+                {% if admin_pending_teachers_count > 0 %}
+                <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_teachers_count }}</span>
+                {% endif %}
+            </a>
+            <a class="nav-link {% if active_menu == 'certificates' %}active{% endif %}" href="{% url 'adminpanel:certificates' %}">
+                Certificates
+                {% if admin_pending_certificates_count > 0 %}
+                <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_certificates_count }}</span>
+                {% endif %}
+            </a>
             <a class="nav-link {% if active_menu == 'audit_logs' %}active{% endif %}" href="{% url 'adminpanel:audit_logs' %}">Audit Logs</a>
             <a class="nav-link {% if active_menu == 'system_config' %}active{% endif %}" href="{% url 'adminpanel:system_config' %}">System Config</a>
         </aside>

@@ -246,11 +246,11 @@
 
             <!-- Module List -->
             {% if modules %}
-            <div class="module-list">
+            <div class="module-list" id="module-list">
                 {% for module in modules %}
-                <div class="module-card">
+                <div class="module-card" data-id="{{ module.id }}">
                     <!-- Order number -->
-                    <div class="seq-badge">{{ forloop.counter }}</div>
+                    <div class="seq-badge" style="cursor:grab;" title="Drag to reorder">{{ forloop.counter }}</div>
 
                     <!-- Type icon -->
                     <div class="type-icon type-{{ module.type }}">
@@ -281,11 +281,12 @@
                                     <span>📝 No content</span>
                                 {% endif %}
                             {% elif module.type == 'quiz' %}
-                                {% if module.question %}
-                                    <span>❓ Quiz question set</span>
+                                {% if module.quizzes.exists %}
+                                    <span>❓ {{ module.quizzes.first.questions.count }} Questions</span>
                                 {% else %}
-                                    <span>❓ No question</span>
+                                    <span>❓ No questions</span>
                                 {% endif %}
+
                             {% endif %}
                         </div>
                     </div>
@@ -315,6 +316,45 @@
         </footer>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const el = document.getElementById('module-list');
+        if (el) {
+            Sortable.create(el, {
+                handle: '.seq-badge', // handle's class
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    let order = [];
+                    el.querySelectorAll('.module-card').forEach(function(row, index) {
+                        order.push(row.getAttribute('data-id'));
+                        // update the UI sequence badges to reflect new order instantly
+                        row.querySelector('.seq-badge').innerText = index + 1;
+                    });
+                    
+                    fetch("{% url 'teacher:reorder_modules' course.id %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({'module_ids': order})
+                    }).then(res => res.json())
+                      .then(data => {
+                          if(data.status !== 'success') {
+                              console.error('Reorder failed: ', data);
+                              alert('Error saving the new order.');
+                          }
+                      }).catch(err => {
+                          console.error('Error:', err);
+                      });
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
 
 {% block footer %}{% endblock %}

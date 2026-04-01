@@ -34,6 +34,9 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 9l3 3m0 0l3-3m-3 3V10"></path></svg>
             </span>
             <span class="text">Assignment Review</span>
+            {% if teacher_pending_assignments_count > 0 %}
+            <span style="background: #ef4444; color: white; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-left: auto; padding: 0 6px;">{{ teacher_pending_assignments_count }}</span>
+            {% endif %}
         </a>
         <a href="{% url 'teacher:video_manager' %}" class="sidebar-link {% if active_menu == 'video_manager' %}active{% endif %}">
             <span class="icon">
@@ -46,22 +49,33 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zm0 8h10M7 11V8m10 7h-4m4-3h-4"></path></svg>
             </span>
             <span class="text">Certificate Approvals</span>
-        </a>
-        <a href="{% url 'teacher:settings' %}" class="sidebar-link {% if active_menu == 'settings' %}active{% endif %}">
-            <span class="icon">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            </span>
-            <span class="text">Settings</span>
+            {% if teacher_pending_certificates_count > 0 %}
+            <span style="background: #ef4444; color: white; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-left: auto; padding: 0 6px;">{{ teacher_pending_certificates_count }}</span>
+            {% endif %}
         </a>
     </nav>
     
     <div class="sidebar-footer">
-        <a href="{% url 'logout' %}" class="sidebar-link logout-btn">
-            <span class="icon">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            </span>
-            <span class="text">Logout</span>
-        </a>
+        <div class="profile-card">
+            <div class="profile-avatar">
+                {% if request.user.studentprofile.profile_image %}
+                    <img src="{{ request.user.studentprofile.profile_image.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    <span class="avatar-initials">{{ request.user.username|slice:":1"|upper }}</span>
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                <div class="profile-actions">
+                    <a href="{% url 'teacher:settings' %}" class="action-btn" title="Settings">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </a>
+                    <a href="{% url 'logout' %}" class="action-btn logout" title="Logout">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </aside>
 
@@ -191,6 +205,86 @@
         margin-top: auto;
         padding-top: 1.5rem;
         border-top: 1px solid #f1f5f9;
+        padding-bottom: 0.5rem;
+    }
+
+    .profile-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .profile-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 2px solid white;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+
+    .avatar-initials {
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .profile-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .profile-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: white;
+        color: var(--text-muted);
+        text-decoration: none;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background: #f1f5f9;
+        color: var(--primary-gradient);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .action-btn.logout:hover {
+        background: #fef2f2;
+        color: #ef4444;
+        border-color: #fecaca;
     }
 
     .logout-btn {

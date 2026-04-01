@@ -57,6 +57,8 @@
                             <input type="hidden" name="reason" value="Revoked by private admin panel">
                             <button class="btn danger" type="submit">Revoke</button>
                         </form>
+                        {% else %}
+                        <a class="btn primary" href="{% url 'adminpanel:reissue_certificate' certificate.id %}" style="background: var(--primary); color: white;">Reissue</a>
                         {% endif %}
                     </div>
                 </td>

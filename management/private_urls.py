@@ -16,6 +16,7 @@ urlpatterns = [
     path('certificates/<int:certificate_id>/view/', views.private_admin_certificate_view, name='certificate_view'),
     path('certificates/<int:certificate_id>/revoke/', views.private_admin_revoke_certificate, name='revoke_certificate'),
     path('certificates/<int:certificate_id>/approve/', views.private_admin_approve_certificate, name='approve_certificate'),
+    path('certificates/<int:certificate_id>/reissue/', views.private_admin_reissue_certificate, name='reissue_certificate'),
     path('audit-logs/', views.private_admin_audit_logs, name='audit_logs'),
     path('system-config/', views.private_admin_system_config, name='system_config'),
     path('teacher-approvals/', views.private_admin_teacher_approvals, name='teacher_approvals'),

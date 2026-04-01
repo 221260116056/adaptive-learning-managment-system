@@ -150,35 +150,14 @@
                     <!-- Quiz Section -->
                     {% if module.type == "quiz" %}
                     <div id="quizSection" class="module-section" style="display: block;">
-                        <h3>Quiz Module</h3>
-                        <div class="form-group">
-                            <label>Question</label>
-                            <input type="text" name="question" class="form-control" placeholder="Enter quiz question" value="{{ module.question }}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="margin: 0;">Quiz Questions</h3>
+                            <button type="button" id="addQuestionBtn" class="btn-submit" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                                + Add Question
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label>Option A</label>
-                            <input type="text" name="a" class="form-control" placeholder="Option A" value="{{ module.option_a }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Option B</label>
-                            <input type="text" name="b" class="form-control" placeholder="Option B" value="{{ module.option_b }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Option C</label>
-                            <input type="text" name="c" class="form-control" placeholder="Option C" value="{{ module.option_c }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Option D</label>
-                            <input type="text" name="d" class="form-control" placeholder="Option D" value="{{ module.option_d }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Correct Answer</label>
-                            <select name="correct" class="form-control">
-                                <option value="A" {% if module.correct_answer == "A" %}selected{% endif %}>A</option>
-                                <option value="B" {% if module.correct_answer == "B" %}selected{% endif %}>B</option>
-                                <option value="C" {% if module.correct_answer == "C" %}selected{% endif %}>C</option>
-                                <option value="D" {% if module.correct_answer == "D" %}selected{% endif %}>D</option>
-                            </select>
+                        <div id="questionsContainer">
+                            <!-- Questions will be added here -->
                         </div>
                     </div>
                     {% endif %}
@@ -205,4 +184,88 @@
         </main>
     </div>
 </div>
-{% endblock %}
+{{ questions|json_script:"questions-data" }}
+
+
+<script>
+(function() {
+    const questionsContainer = document.getElementById("questionsContainer");
+    const addQuestionBtn = document.getElementById("addQuestionBtn");
+
+    if (!questionsContainer || !addQuestionBtn) return;
+
+    let questionCount = 0;
+
+    function addQuestion(text = "", a = "", b = "", c = "", d = "", correct = "A") {
+        questionCount++;
+        const questionBlock = document.createElement("div");
+        questionBlock.className = "question-block";
+        questionBlock.id = `question_${questionCount}`;
+        questionBlock.style.background = "white";
+        questionBlock.style.padding = "1.5rem";
+        questionBlock.style.borderRadius = "12px";
+        questionBlock.style.border = "1px solid #e2e8f0";
+        questionBlock.style.marginBottom = "1.5rem";
+
+        questionBlock.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h4 style="margin: 0; color: var(--primary);">Question #${questionCount}</h4>
+                <button type="button" onclick="removeQuestion(${questionCount})" style="color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600;">Remove</button>
+            </div>
+            <div class="form-group">
+                <label>Question Text</label>
+                <input type="text" name="quiz_question_text[]" class="form-control" value="${text}" placeholder="Enter quiz question" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Option A</label>
+                    <input type="text" name="quiz_option_a[]" class="form-control" value="${a}" placeholder="Option A" required>
+                </div>
+                <div class="form-group">
+                    <label>Option B</label>
+                    <input type="text" name="quiz_option_b[]" class="form-control" value="${b}" placeholder="Option B" required>
+                </div>
+                <div class="form-group">
+                    <label>Option C</label>
+                    <input type="text" name="quiz_option_c[]" class="form-control" value="${c}" placeholder="Option C" required>
+                </div>
+                <div class="form-group">
+                    <label>Option D</label>
+                    <input type="text" name="quiz_option_d[]" class="form-control" value="${d}" placeholder="Option D" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Correct Answer</label>
+                <select name="quiz_correct_answer[]" class="form-control">
+                    <option value="A" ${correct === 'A' ? 'selected' : ''}>A</option>
+                    <option value="B" ${correct === 'B' ? 'selected' : ''}>B</option>
+                    <option value="C" ${correct === 'C' ? 'selected' : ''}>C</option>
+                    <option value="D" ${correct === 'D' ? 'selected' : ''}>D</option>
+                </select>
+            </div>
+        `;
+        questionsContainer.appendChild(questionBlock);
+    }
+
+    window.removeQuestion = function(id) {
+        const block = document.getElementById(`question_${id}`);
+        if (block) block.remove();
+    };
+
+    // Load existing questions
+    const qData = document.getElementById('questions-data');
+    if (qData) {
+        const initialQuestions = JSON.parse(qData.textContent);
+        if (initialQuestions && initialQuestions.length > 0) {
+            initialQuestions.forEach(q => {
+                addQuestion(q.text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer);
+            });
+        } else {
+            addQuestion(); // Add one blank if none exist
+        }
+    }
+
+    addQuestionBtn.addEventListener("click", () => addQuestion());
+})();
+</script>
+{% endblock %}

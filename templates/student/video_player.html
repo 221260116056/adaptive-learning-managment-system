@@ -558,8 +558,10 @@
 {% block content %}
 <div id="playerConfig" data-module-id="{{ module.id }}" data-update-progress-url="{% url 'update_progress_api' %}"
     data-mark-complete-url="{% url 'mark_complete_api' module.id %}" data-submit-quiz-url="{% url 'submit_quiz_api' %}"
+    data-submit-quiz-question-url="{% url 'submit_quiz_question_api' %}"
     data-next-module-url="{{ next_module_url }}" data-csrf-token="{{ csrf_token }}"
-    data-is-locked="{{ is_locked|yesno:'true,false' }}" data-is-hls="{{ is_hls|yesno:'true,false' }}"
+    data-is-locked="{{ is_locked|yesno:'true,false' }}"
+ data-is-hls="{{ is_hls|yesno:'true,false' }}"
     data-hls-src="{{ embed_url|default:'' }}" data-module-progress="{{ module_progress_percent }}"
     data-course-progress="{{ course_progress_percent }}" data-completed-modules="{{ completed_modules_count }}"
     data-total-modules="{{ total_modules_count }}"
@@ -584,24 +586,29 @@
 <div class="player-main-wrapper">
     <div class="player-grid">
         <div class="viewport-column">
+            {% if is_locked %}
+            <div class="video-card" style="display: flex; align-items: center; justify-content: center; background: #0f172a; padding: 3rem; min-height: 400px;">
+                <div class="overlay-content" style="text-align: center; color: white;">
+                    <h2>Content Locked</h2>
+                    <p style="margin-top: 1rem; color: #cbd5e1;">{{ lock_reason|default:"Please complete earlier modules first." }}</p>
+                    <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}" class="btn-action btn-primary" style="margin-top: 1.5rem; display: inline-block;">Return to Syllabus</a>
+                </div>
+            </div>
+            {% else %}
             {% if module.type == 'video' %}
             <div class="video-container-diagnostic">
-                <video id="videoPlayer" controls style="width:100%; height:400px; background:black;"></video>
+                <video id="videoPlayer" controls style="width:100%; height:400px; background:black;">
+                    {% if not module.dash_manifest and not is_hls and embed_url %}
+                    <source src="{{ embed_url }}" type="video/mp4">
+                    {% endif %}
+                </video>
 
+                {% if dash_manifest %}
                 <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
-
                 <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const video = document.getElementById("videoPlayer");
-                        const mpdUrl = "{% if module.dash_manifest %}/media/{{ module.dash_manifest }}{% endif %}";
-
-                        console.log("MPD URL:", mpdUrl);
-
-                        if (!mpdUrl) {
-                            console.error("MPD URL missing from database for this module.");
-                            return;
-                        }
-
+                        const mpdUrl = "/media/{{ module.dash_manifest }}";
                         const player = dashjs.MediaPlayer().create();
 
                         player.updateSettings({
@@ -616,21 +623,26 @@
                         player.on("error", function (e) {
                             console.error("DASH ERROR:", e);
                         });
-
-                        player.on("streamInitialized", function () {
-                            console.log("Stream initialized successfully. Tracks:", player.getTracksFor("video"));
-                        });
                     });
                 </script>
-            </div>
+                {% endif %}
 
-            <div id="lockOverlay" class="player-overlay" {% if is_locked %}style="display: flex;" {% endif %}>
-                <div class="overlay-content">
-                    <h2>Content Locked</h2>
-                    <p>{{ lock_reason|default:"Please complete earlier modules first." }}</p>
-                    <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}"
-                        class="btn-action btn-primary">Return to Syllabus</a>
-                </div>
+                {% if is_hls %}
+                <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const video = document.getElementById("videoPlayer");
+                        const hlsSrc = "{{ embed_url|default:'' }}";
+                        if (Hls.isSupported()) {
+                            const hls = new Hls();
+                            hls.loadSource(hlsSrc);
+                            hls.attachMedia(video);
+                        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                            video.src = hlsSrc;
+                        }
+                    });
+                </script>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -783,6 +795,7 @@
                 </div>
             </section>
             {% endif %}
+            {% endif %}
 
             <div class="course-info-card">
                 <div class="info-header">
@@ -794,15 +807,20 @@
                         </div>
                     </div>
                     <div class="action-group">
+                        {% if not is_locked %}
                         {% if module.type == 'video' %}
-                        <button id="completeBtn" type="button" class="btn-action btn-primary"
-                            style="background: linear-gradient(135deg, #16a34a, #15803d); border-color: #16a34a;">Mark
-                            Complete &amp; Continue</button>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <button id="completeBtn" type="button" class="btn-action btn-primary"
+                                style="background: linear-gradient(135deg, #16a34a, #15803d); border-color: #16a34a;">Mark Complete &amp; Continue</button>
+                            <span id="watchRequirementIndicator" style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; display: none;"></span>
+                        </div>
                         {% elif module.type == 'quiz' %}
                         <button id="quizBtn" type="button" class="btn-action btn-primary" style="display: none;">Take
                             Quiz</button>
                         {% endif %}
+                        {% endif %}
                     </div>
+                    <div id="playerStatus" style="display: none; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-weight: 500; font-size: 0.9rem;"></div>
                 </div>
 
                 <div class="progress-shell">
@@ -810,8 +828,8 @@
                         <span>Module Progress</span>
                         <span id="progressPercent">{{ module_progress_percent }}%</span>
                     </div>
-                    <div class="progress-track">
-                        <div id="progress-bar" style="width: {{ module_progress_percent }}%;"></div>
+                    <div class="progress-track" style="--w: {{ module_progress_percent }}%;">
+                        <div id="progress-bar" style="width: var(--w);"></div>
                     </div>
                 </div>
 
@@ -827,8 +845,8 @@
                         <span>Course Progress</span>
                         <span id="courseProgressPercent">{{ course_progress_percent }}%</span>
                     </div>
-                    <div class="progress-track">
-                        <div id="course-progress-bar" style="width: {{ course_progress_percent }}%;"></div>
+                    <div class="progress-track" style="--w: {{ course_progress_percent }}%;">
+                        <div id="course-progress-bar" style="width: var(--w);"></div>
                     </div>
                 </div>
             </div>

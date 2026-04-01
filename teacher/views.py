@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .decorators import teacher_required
-from student.models import Course, CourseCertificateTemplate, Enrollment, QuizAttempt, Module, StudentProfile, WatchEvent, Certificate, Notification, AssignmentSubmission
+from student.models import Course, CourseCertificateTemplate, Enrollment, QuizAttempt, Module, StudentProfile, WatchEvent, Certificate, Notification, AssignmentSubmission, Quiz, Question
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from .moodle_manager import MoodleTeacherManager
@@ -294,12 +294,23 @@ def upload_lesson(request):
         if module_type == 'video':
             video_file = request.FILES.get('video_file')
             
+            if not video_file:
+                module.delete()
+                messages.error(request, 'Video file is required for video modules.')
+                return redirect('teacher:upload_lesson')
+
+            # Basic extension validation
+            ext = os.path.splitext(video_file.name)[1].lower()
+            if ext not in ['.mp4', '.webm', '.ogg']:
+                module.delete()
+                messages.error(request, 'Invalid video format. Only MP4, WebM, and OGG are supported.')
+                return redirect('teacher:upload_lesson')
+            
             module.video_file = video_file
             module.save()
             
-            if video_file:
-                trigger_dash_transcode(module.id)
-            messages.success(request, 'Video module created successfully.')
+            trigger_dash_transcode(module.id)
+            messages.success(request, 'Video module uploaded and queued for processing.')
 
         elif module_type == 'theory':
             content = request.POST.get('theory_content', '')
@@ -313,22 +324,33 @@ def upload_lesson(request):
             messages.success(request, 'Theory module created successfully.')
 
         elif module_type == 'quiz':
-            question = request.POST.get('question', '')
-            option_a = request.POST.get('option_a', '')
-            option_b = request.POST.get('option_b', '')
-            option_c = request.POST.get('option_c', '')
-            option_d = request.POST.get('option_d', '')
-            correct_answer = request.POST.get('correct_answer', '')
+            # Create the Quiz container
+            quiz = Quiz.objects.create(module=module)
             
-            module.question = question
-            module.option_a = option_a
-            module.option_b = option_b
-            module.option_c = option_c
-            module.option_d = option_d
-            module.correct_answer = correct_answer
-            module.save()
+            # Fetch dynamic lists from the form
+            q_texts = request.POST.getlist('quiz_question_text[]')
+            q_a = request.POST.getlist('quiz_option_a[]')
+            q_b = request.POST.getlist('quiz_option_b[]')
+            q_c = request.POST.getlist('quiz_option_c[]')
+            q_d = request.POST.getlist('quiz_option_d[]')
+            q_correct = request.POST.getlist('quiz_correct_answer[]')
+
+            # Loop through and create Questions
+            for i in range(len(q_texts)):
+                if q_texts[i].strip():
+                    Question.objects.create(
+                        quiz=quiz,
+                        text=q_texts[i],
+                        option_a=q_a[i] if i < len(q_a) else "",
+                        option_b=q_b[i] if i < len(q_b) else "",
+                        option_c=q_c[i] if i < len(q_c) else "",
+                        option_d=q_d[i] if i < len(q_d) else "",
+                        correct_answer=q_correct[i] if i < len(q_correct) else "A",
+                        order=i
+                    )
             
-            messages.success(request, 'Quiz module created successfully.')
+            messages.success(request, 'Quiz module created with multiple questions.')
+
 
         elif module_type == 'assignment':
             assignment_file = request.FILES.get('assignment_file')
@@ -371,6 +393,24 @@ def course_modules(request, course_id):
         'active_menu': 'course_modules'
     })
 
+from django.http import JsonResponse
+
+@teacher_required
+def reorder_modules(request, course_id):
+    if request.method == 'POST':
+        course = get_object_or_404(Course, id=course_id, teacher=request.user)
+        try:
+            data = json.loads(request.body)
+            module_ids = data.get('module_ids', [])
+            
+            for index, m_id in enumerate(module_ids, start=1):
+                Module.objects.filter(id=m_id, course=course).update(order=index)
+                
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'invalid method'}, status=405)
+
 @teacher_required
 def teacher_certificates(request):
     certificates = Certificate.objects.filter(
@@ -386,18 +426,15 @@ def teacher_certificates(request):
 def teacher_approve_certificate(request, certificate_id):
     certificate = get_object_or_404(Certificate, id=certificate_id, course__teacher=request.user)
     if certificate.status == 'pending_teacher':
-        # Now moves to final approved state (simplified for UI request)
-        from student.certificate_generator import generate_certificate_pdf
-        certificate.status = 'approved'
-        certificate.issued_at = timezone.now()
-        certificate.save()
+        certificate.status = 'pending_admin'
+        certificate.save(update_fields=['status', 'updated_at'])
         
-        # Trigger PDF generation
-        try:
-            generate_certificate_pdf(certificate)
-            messages.success(request, f"Certificate for {certificate.user.username} has been generated and issued.")
-        except Exception as e:
-            messages.error(request, f"Certificate approved but PDF generation failed: {str(e)}")
+        Notification.objects.get_or_create(
+            user=certificate.user,
+            message=f"Your certificate request for {certificate.course.title} has been approved by the teacher and is now awaiting final admin verification.",
+            link=reverse('certificates')
+        )
+        messages.success(request, f"Certificate request for {certificate.user.username} approved and sent to admin for final issuance.")
             
         Notification.objects.get_or_create(
             user=certificate.user,
@@ -490,7 +527,7 @@ def preview_module(request, module_id):
         'course_progress_percent': course_progress_percent,
         'completed_modules_count': completed_modules,
         'total_modules_count': total_modules,
-        'quiz_payload': _quiz_payload(quiz),
+        'quiz_payload': _quiz_payload(quiz, request.user),
         'next_module_url': reverse('teacher:preview_module', kwargs={'module_id': next_module.id}) if next_module else reverse('teacher:course_modules', kwargs={'course_id': module.course.id}),
         'allow_seek': True,
         'disable_fast_forward': module.video_details.disable_fast_forward if hasattr(module, 'video_details') and module.video_details else True,
@@ -544,13 +581,18 @@ def create_module(request):
 
         # VIDEO
         if module.type == "video":
-            if request.FILES.get("video"):
-                module.video_file = request.FILES.get("video")
+            video_file = request.FILES.get("video")
+            if video_file:
+                module.video_file = video_file
                 module.save()
 
                 relative_manifest = convert_to_dash(module.video_file.path, module.id)
                 if relative_manifest:
                     module.dash_manifest = relative_manifest
+            else:
+                module.delete()
+                messages.error(request, "Video file is required.")
+                return redirect("teacher:create_module")
 
         # THEORY
         elif module.type == "theory":
@@ -560,12 +602,27 @@ def create_module(request):
 
         # QUIZ
         elif module.type == "quiz":
-            module.question = request.POST.get("question")
-            module.option_a = request.POST.get("a")
-            module.option_b = request.POST.get("b")
-            module.option_c = request.POST.get("c")
-            module.option_d = request.POST.get("d")
-            module.correct_answer = request.POST.get("correct")
+            quiz = Quiz.objects.create(module=module)
+            q_texts = request.POST.getlist('quiz_question_text[]')
+            q_a = request.POST.getlist('quiz_option_a[]')
+            q_b = request.POST.getlist('quiz_option_b[]')
+            q_c = request.POST.getlist('quiz_option_c[]')
+            q_d = request.POST.getlist('quiz_option_d[]')
+            q_correct = request.POST.getlist('quiz_correct_answer[]')
+
+            for i in range(len(q_texts)):
+                if q_texts[i].strip():
+                    Question.objects.create(
+                        quiz=quiz,
+                        text=q_texts[i],
+                        option_a=q_a[i] if i < len(q_a) else "",
+                        option_b=q_b[i] if i < len(q_b) else "",
+                        option_c=q_c[i] if i < len(q_c) else "",
+                        option_d=q_d[i] if i < len(q_d) else "",
+                        correct_answer=q_correct[i] if i < len(q_correct) else "A",
+                        order=i
+                    )
+
 
         # ASSIGNMENT
         elif module.type == "assignment":
@@ -589,11 +646,13 @@ def edit_module(request, module_id):
 
         # VIDEO RE-UPLOAD
         if module.type == "video":
-            if request.FILES.get("video"):
+            video_file = request.FILES.get("video")
+            if video_file:
+                # Delete old file
                 if module.video_file:
                     module.video_file.delete()
 
-                module.video_file = request.FILES.get("video")
+                module.video_file = video_file
                 module.save()
 
                 relative_manifest = convert_to_dash(module.video_file.path, module.id)
@@ -602,6 +661,8 @@ def edit_module(request, module_id):
             elif module.video_file and not module.dash_manifest:
                 # If no new upload but streaming chunks are missing, rebuild in background.
                 trigger_dash_transcode(module.id)
+            elif not module.video_file:
+                messages.error(request, "Video module must have a video file.")
 
         # THEORY
         elif module.type == "theory":
@@ -614,12 +675,30 @@ def edit_module(request, module_id):
 
         # QUIZ
         elif module.type == "quiz":
-            module.question = request.POST.get("question")
-            module.option_a = request.POST.get("a")
-            module.option_b = request.POST.get("b")
-            module.option_c = request.POST.get("c")
-            module.option_d = request.POST.get("d")
-            module.correct_answer = request.POST.get("correct")
+            quiz, _ = Quiz.objects.get_or_create(module=module)
+            # Clear existing questions for sync
+            quiz.questions.all().delete()
+            
+            q_texts = request.POST.getlist('quiz_question_text[]')
+            q_a = request.POST.getlist('quiz_option_a[]')
+            q_b = request.POST.getlist('quiz_option_b[]')
+            q_c = request.POST.getlist('quiz_option_c[]')
+            q_d = request.POST.getlist('quiz_option_d[]')
+            q_correct = request.POST.getlist('quiz_correct_answer[]')
+
+            for i in range(len(q_texts)):
+                if q_texts[i].strip():
+                    Question.objects.create(
+                        quiz=quiz,
+                        text=q_texts[i],
+                        option_a=q_a[i] if i < len(q_a) else "",
+                        option_b=q_b[i] if i < len(q_b) else "",
+                        option_c=q_c[i] if i < len(q_c) else "",
+                        option_d=q_d[i] if i < len(q_d) else "",
+                        correct_answer=q_correct[i] if i < len(q_correct) else "A",
+                        order=i
+                    )
+
 
         # ASSIGNMENT
         elif module.type == "assignment":
@@ -631,10 +710,15 @@ def edit_module(request, module_id):
         module.save()
         return redirect("teacher:course_modules", course_id=module.course_id)
 
+    quiz = module.quizzes.first()
+    questions = quiz.questions.all().order_by('order') if quiz else []
+
     return render(request, "teacher/edit_module.html", {
         "module": module,
+        "questions": questions,
         "active_menu": "modules"
     })
+
 
 @teacher_required
 def review_assignments(request):

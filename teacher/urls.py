@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('lessons/upload/', views.upload_lesson, name='upload_lesson'),
     path('courses/<int:course_id>/modules/', views.course_modules, name='course_modules'),
+    path('courses/<int:course_id>/modules/reorder/', views.reorder_modules, name='reorder_modules'),
     path('modules/create/', views.create_module, name='create_module'),
     path('modules/<int:module_id>/edit/', views.edit_module, name='edit_module'),
     path('videos/', views.video_manager, name='video_manager'),

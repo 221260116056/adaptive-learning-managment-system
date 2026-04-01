@@ -29,6 +29,7 @@ from .models import (
     Option,
     PlatformSetting,
     Question,
+    QuestionAttempt,
     Quiz,
     QuizAttempt,
     StudentProgress,
@@ -81,16 +82,18 @@ def _normalize_quiz_answer(value):
 
 def _module_quiz_questions(module):
     if module.type == 'quiz':
-        # For new unified model
-        if module.question:
-            return [{
-                'question': module.question,
-                'options': [module.option_a, module.option_b, module.option_c, module.option_d],
-                'answer': module.correct_answer
-            }]
-        return []
-
-    # Fallback for old model structure
+        quiz = module.quizzes.first()
+        if quiz:
+            return [
+                {
+                    'question': q.text,
+                    'options': [q.option_a, q.option_b, q.option_c, q.option_d],
+                    'answer': q.correct_answer
+                }
+                for q in quiz.questions.all().order_by('order')
+            ]
+        
+    # Fallback/Legacy logic
     if hasattr(module, 'quiz_details'):
         return [
             {
@@ -100,6 +103,7 @@ def _module_quiz_questions(module):
             }
             for q in module.quiz_details.questions.all().order_by('id')
         ]
+
 
     quiz_data = getattr(module, 'quiz_data', None) or {}
     questions = quiz_data.get('questions')
@@ -129,47 +133,58 @@ def _ensure_module_quiz(module):
 
     questions = _module_quiz_questions(module)
     for question_data in questions:
-        question = Question.objects.create(
+        expected_answer = _normalize_quiz_answer(question_data.get('answer'))
+        options = question_data.get('options', [])
+        
+        # Determine the correct answer label (A, B, C, or D)
+        correct_answer_label = "A"
+        for idx, opt_text in enumerate(options[:4]):
+            if _normalize_quiz_answer(opt_text) == expected_answer or _question_answer_label(idx) == expected_answer:
+                correct_answer_label = _question_answer_label(idx).upper()
+                break
+
+        Question.objects.create(
             quiz=quiz,
             text=question_data.get('question', 'Quiz Question'),
+            option_a=str(options[0]) if len(options) > 0 else "",
+            option_b=str(options[1]) if len(options) > 1 else "",
+            option_c=str(options[2]) if len(options) > 2 else "",
+            option_d=str(options[3]) if len(options) > 3 else "",
+            correct_answer=correct_answer_label,
+            order=0  # Or keep track of order in the loop
         )
-        expected_answer = _normalize_quiz_answer(question_data.get('answer'))
-        options = question_data.get('options') or []
 
-        for index, option_text in enumerate(options):
-            normalized_option = _normalize_quiz_answer(option_text)
-            option_label = _question_answer_label(index)
-            is_correct = normalized_option == expected_answer or option_label == expected_answer
-            Option.objects.create(
-                question=question,
-                text=str(option_text),
-                is_correct=is_correct,
-            )
 
     return quiz
 
 
-def _quiz_payload(quiz):
+def _quiz_payload(quiz, user):
     if quiz is None:
         return None
 
+    questions_data = []
+    for question in quiz.questions.all().order_by('order'):
+        attempt = QuestionAttempt.objects.filter(student=user, question=question).first()
+        questions_data.append({
+            'id': question.id,
+            'text': question.text,
+            'options': [
+                {'id': 'A', 'text': question.option_a},
+                {'id': 'B', 'text': question.option_b},
+                {'id': 'C', 'text': question.option_c},
+                {'id': 'D', 'text': question.option_d},
+            ],
+            'attempts_count': attempt.attempts_count if attempt else 0,
+            'is_correct': attempt.is_correct if attempt else False,
+            'is_completed': attempt.is_completed if attempt else False,
+            'correct_answer': question.correct_answer if attempt and attempt.attempts_count >= 3 else None
+        })
+
     return {
         'id': quiz.id,
-        'questions': [
-            {
-                'id': question.id,
-                'text': question.text,
-                'options': [
-                    {
-                        'id': option.id,
-                        'text': option.text,
-                    }
-                    for option in question.options.all().order_by('id')
-                ],
-            }
-            for question in quiz.questions.prefetch_related('options').all().order_by('id')
-        ],
+        'questions': questions_data,
     }
+
 
 
 def _evaluate_quiz_submission(module, answers):
@@ -232,15 +247,12 @@ def _check_course_completion(user, course):
 
     required_quiz_modules = Module.objects.filter(course=course, type='quiz')
     for quiz_module in required_quiz_modules:
-        legacy_passed = StudentProgress.objects.filter(student=user, module=quiz_module, quiz_passed=True).exists()
-        if legacy_passed:
-            # Retroactive sync for old completions
-            mp, _ = ModuleProgress.objects.get_or_create(user=user, module=quiz_module)
-            if not mp.is_completed:
-                mp.is_completed = True
-                mp.video_progress = 100.0
-                mp.save(update_fields=['is_completed', 'video_progress', 'updated_at'])
-        else:
+        is_passed = StudentProgress.objects.filter(student=user, module=quiz_module, quiz_passed=True).exists()
+        if not is_passed:
+            # Check the new ModuleProgress system too
+            is_passed = ModuleProgress.objects.filter(user=user, module=quiz_module, is_completed=True).exists()
+        
+        if not is_passed:
             return None
 
     completed_modules = ModuleProgress.objects.filter(
@@ -328,6 +340,20 @@ def landing_courses_view(request):
         'user_role': get_user_role(request.user),
     })
     return render(request, 'main/courses.html', context)
+    
+def landing_course_detail_view(request, course_id):
+    from django.db.models import Count
+    course = get_object_or_404(Course, id=course_id, is_active=True)
+    modules = course.module_set.all().order_by('order')
+    
+    context = _landing_context()
+    context.update({
+        'course': course,
+        'modules': modules,
+        'user_role': get_user_role(request.user),
+        'is_enrolled': Enrollment.objects.filter(student=request.user, course=course).exists() if request.user.is_authenticated else False,
+    })
+    return render(request, 'main/course_detail.html', context)
 
 
 def landing_about_view(request):
@@ -436,19 +462,10 @@ def student_login_view(request):
         customize_auth_form(form)
     return render(request, 'student/auth_login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('home')
-
-    return response
-
-
-def verify_certificate(request, token):
-    certificate = get_object_or_404(
-        Certificate.objects.select_related('course', 'user'),
-        verification_token=token,
-    )
-    return render(request, 'certificates/verify.html', {'certificate': certificate})
 
 @student_required
 def profile_view(request):
@@ -953,6 +970,7 @@ def video_player(request, module_id):
     # ---------------------------------------------------------
     # Module type rendering
     # ---------------------------------------------------------
+    # Setup media/embedding state
     is_youtube = False
     is_hls = False
     is_external_page = False
@@ -971,18 +989,13 @@ def video_player(request, module_id):
             # Use DASH manifest
             embed_url = f"/media/{dash_manifest}"
 
-    if embed_url and ('youtube.com' in embed_url or 'youtu.be' in embed_url):
-        is_youtube = True
-        if 'youtu.be/' in embed_url:
-            video_id = embed_url.split('youtu.be/')[1].split('?')[0]
-            embed_url = f"https://www.youtube.com/embed/{video_id}"
-        elif 'youtube.com/watch?v=' in embed_url:
-            video_id = embed_url.split('v=')[1].split('&')[0]
-            embed_url = f"https://www.youtube.com/embed/{video_id}"
-    elif embed_url and embed_url.lower().endswith('.m3u8'):
+    # Only support local HLS if manifest ends with .m3u8 (legacy) or DASH manifest exists
+    if embed_url and embed_url.lower().endswith('.m3u8'):
         is_hls = True
-    elif embed_url and not any(ext in embed_url.lower() for ext in ['.mp4', '.webm', '.ogg']):
+    elif not embed_url and module.type == 'video':
+        # Feedback for missing content
         is_external_page = True
+        embed_url = "about:blank"
             
     # Check if module is locked (adaptive progression)
     # Locked if any module with a lower 'order' is not completed
@@ -1010,6 +1023,14 @@ def video_player(request, module_id):
     ).count()
     course_progress_percent = int((completed_modules / total_modules) * 100) if total_modules else 0
     module_progress, _ = ModuleProgress.objects.get_or_create(user=request.user, module=module)
+    
+    if module_progress.is_completed:
+        computed_module_progress = 100
+    elif module.type == 'video':
+        computed_module_progress = int(module_progress.video_progress)
+    else:
+        computed_module_progress = 0
+        
     quiz = _ensure_module_quiz(module)
     next_module = Module.objects.filter(course=module.course, order__gt=module.order).order_by('order').first()
              
@@ -1027,12 +1048,12 @@ def video_player(request, module_id):
         'lock_reason': lock_reason,
         'progress': progress,
         'module_progress': module_progress,
-        'module_progress_percent': int(module_progress.video_progress),
+        'module_progress_percent': computed_module_progress,
         'attempts_remaining': attempts_remaining,
         'course_progress_percent': course_progress_percent,
         'completed_modules_count': completed_modules,
         'total_modules_count': total_modules,
-        'quiz_payload': _quiz_payload(quiz),
+        'quiz_payload': _quiz_payload(quiz, request.user),
         'next_module_url': reverse('video_player', kwargs={'module_id': next_module.id}) if next_module else reverse('dashboard'),
         'allow_seek': True,  # Default for new model
         'disable_fast_forward': module.video_details.disable_fast_forward if hasattr(module, 'video_details') and module.video_details else True,
@@ -1146,9 +1167,7 @@ def video_heartbeat(request):
             progress.video_progress = max(progress.video_progress, percent)
             progress.save()
 
-            # Sync completion state
-            _sync_completion_state(progress)
-
+            # Removed _sync_completion_state since video progress waits for the user to explicitly call mark_complete_api
             return JsonResponse({'status': 'ok'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

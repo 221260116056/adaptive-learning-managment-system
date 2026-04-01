@@ -10,7 +10,8 @@ from .models import (
     Enrollment,
     Module,
     ModuleProgress,
-    Option,
+    Question,
+    QuestionAttempt,
     Quiz,
     QuizAttempt,
     StudentProgress,
@@ -227,6 +228,12 @@ def mark_complete_api(request, module_id):
         return Response({"status": "error", "message": "Enrollment required"}, status=403)
 
     progress, _ = ModuleProgress.objects.get_or_create(user=request.user, module=module)
+    
+    if module.type == 'video':
+        min_watch = module.video_details.min_watch_percent if hasattr(module, 'video_details') and module.video_details else 80
+        if progress.video_progress < min_watch:
+            return Response({"status": "error", "message": f"Must watch at least {min_watch}% before marking complete."}, status=400)
+            
     progress.is_completed = True
     progress.video_progress = max(progress.video_progress, 100.0)
     progress.save(update_fields=["is_completed", "video_progress", "updated_at"])
@@ -296,7 +303,7 @@ def submit_quiz_api(request):
             "message": f"Attempt limit reached ({max_attempts}).",
         }, status=400)
 
-    questions = list(quiz.questions.prefetch_related("options").all().order_by("id"))
+    questions = list(quiz.questions.all().order_by("order"))
     total_questions = len(questions)
     if total_questions == 0:
         return Response({"status": "error", "message": "Quiz has no questions."}, status=400)
@@ -305,20 +312,17 @@ def submit_quiz_api(request):
     correct_count = 0
 
     for question in questions:
-        submitted_option_id = answers.get(str(question.id)) or answers.get(question.id)
-        if not submitted_option_id:
+        submitted_answer = answers.get(str(question.id)) or answers.get(question.id)
+        if not submitted_answer:
             continue
 
-        option = Option.objects.filter(id=submitted_option_id, question=question).first()
-        if option is None:
-            return Response({
-                "status": "error",
-                "message": "Invalid quiz option submitted.",
-            }, status=400)
+        # Save for record
+        normalized_answers[str(question.id)] = str(submitted_answer)
 
-        normalized_answers[str(question.id)] = str(option.id)
-        if option.is_correct:
+        # Case-insensitive comparison (A, B, C, or D)
+        if str(submitted_answer).upper() == str(question.correct_answer).upper():
             correct_count += 1
+
 
     score = int(round((correct_count / total_questions) * 100))
     passing_score = module.quiz_details.passing_score if hasattr(module, 'quiz_details') and module.quiz_details else 70
@@ -374,5 +378,118 @@ def certificate_api(request, course_id):
         "course_id": certificate.course_id,
         "issued_at": certificate.issued_at,
     })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def submit_quiz_question_api(request):
+    """
+    Validates a single question answer in an adaptive quiz.
+    Supports attempt limits (3) and sequential unlocking.
+    """
+    question_id = request.data.get("question_id")
+    answer = request.data.get("answer")
+
+    if not question_id or not answer:
+        return Response({"status": "error", "message": "Missing question_id or answer."}, status=400)
+
+    question = get_object_or_404(Question, id=question_id)
+    quiz = question.quiz
+    module = quiz.module
+    
+    # Check if the user is enrolled
+    if not Enrollment.objects.filter(student=request.user, course=module.course).exists():
+        return Response({"status": "error", "message": "Access denied."}, status=403)
+
+    # Sequential Check: Ensure all lower-order questions in this quiz are completed
+    previous_incomplete = Question.objects.filter(
+        quiz=quiz,
+        order__lt=question.order
+    ).exclude(
+        user_attempts__student=request.user,
+        user_attempts__is_completed=True
+    ).exists()
+
+    if previous_incomplete:
+        return Response({
+            "status": "error", 
+            "message": "Please complete previous questions first."
+        }, status=400)
+
+    # Get or create attempt record
+    attempt, created = QuestionAttempt.objects.get_or_create(
+        student=request.user,
+        question=question
+    )
+
+    if attempt.is_completed:
+        return Response({
+            "status": "success",
+            "message": "Question already completed.",
+            "is_correct": attempt.is_correct,
+            "attempts_count": attempt.attempts_count,
+            "is_completed": True
+        })
+
+    if attempt.attempts_count >= 3:
+        return Response({
+            "status": "error",
+            "message": "Maximum attempts reached.",
+            "correct_answer": question.correct_answer,
+            "attempts_count": attempt.attempts_count,
+            "is_completed": True
+        })
+
+    # Validate Answer
+    attempt.attempts_count += 1
+    is_correct = str(answer).strip().upper() == str(question.correct_answer).strip().upper()
+    
+    if is_correct:
+        attempt.is_correct = True
+        attempt.is_completed = True
+    elif attempt.attempts_count >= 3:
+        # After 3rd failure, mark as completed but not correct
+        attempt.is_completed = True
+    
+    attempt.save()
+
+    response_data = {
+        "status": "success",
+        "is_correct": is_correct,
+        "attempts_count": attempt.attempts_count,
+        "is_completed": attempt.is_completed,
+    }
+
+    # Check for whole quiz completion after this attempt
+    all_questions_count = quiz.questions.count()
+    completed_questions_count = Question.objects.filter(
+        quiz=quiz,
+        user_attempts__student=request.user,
+        user_attempts__is_completed=True
+    ).count()
+
+    if completed_questions_count >= all_questions_count:
+        # Mark module as completed in the new system
+        from .models import ModuleProgress, StudentProgress
+        mp, _ = ModuleProgress.objects.get_or_create(user=request.user, module=module)
+        if not mp.is_completed:
+            mp.is_completed = True
+            mp.save()
+            
+            # Retroactively sync with legacy system for certificate logic
+            student_progress, _ = StudentProgress.objects.get_or_create(
+                student=request.user,
+                course=module.course,
+                module=module
+            )
+            student_progress.quiz_passed = True
+            student_progress.save()
+
+            # Trigger potential certificate request
+            from .views import _issue_certificate_if_eligible
+            _issue_certificate_if_eligible(request.user, module.course)
+
+    return Response(response_data)
+
 
 

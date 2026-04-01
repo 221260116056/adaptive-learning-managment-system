@@ -19,6 +19,9 @@
     .auth-footer{text-align:center;font-size:.92rem;color:#64748b;margin-top:1.5rem}.auth-footer a{color:#6a7bf7;font-weight:700;text-decoration:none}
     .helper-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:.86rem;color:#64748b}
     ul.errorlist{color:#dc2626;font-size:.82rem;margin:0 0 .45rem;padding:0 0 0 1rem}.helptext,.auth-right form ul:not(.errorlist){display:none!important}
+    .message.error { background: #fee2e2; color: #dc2626; }
+    .message.success { background: #d1fae5; color: #059669; }
+    .message.info { background: #e0f2fe; color: #0369a1; }
     @media (max-width:850px){.auth-shell{flex-direction:column;min-height:auto;width:95%;margin:1rem auto}.auth-left{padding:2rem}.auth-right{padding:2rem}.auth-title{font-size:1.8rem}.brand{margin-bottom:1rem}}
 </style>
 
@@ -42,7 +45,7 @@
         {% if messages %}
         <div class="messages" style="margin-bottom: 1rem;">
             {% for message in messages %}
-            <div class="message {{ message.tags }}" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; {% if message.tags == 'error' %}background: #fee2e2; color: #dc2626;{% elif message.tags == 'success' %}background: #d1fae5; color: #059669;{% else %}background: #e0f2fe; color: #0369a1;{% endif %}">
+            <div class="message {{ message.tags }}" style="padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem;">
                 {{ message }}
             </div>
             {% endfor %}

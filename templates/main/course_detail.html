@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} - Syllabus | LearnTrust</title>
+    <style>
+        :root {
+            --primary: #6a7bf7;
+            --primary-dark: #5f79ef;
+            --secondary: #6f49b9;
+            --bg: #f8fafc;
+            --text: #1b1d3b;
+            --muted: #64748b;
+            --white: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body { margin: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { width: min(1200px, calc(100% - 40px)); margin: 0 auto; }
+        
+        .site-header { background: #fff; border-bottom: 1px solid var(--border); }
+        .nav { min-height: 80px; display: flex; align-items: center; justify-content: space-between; }
+        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+        .brand-badge { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); }
+        .brand-title { font-size: 20px; font-weight: 800; color: var(--primary-dark); }
+
+        .hero { padding: 80px 0; background: #fff; border-bottom: 1px solid var(--border); }
+        .hero-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 60px; align-items: center; }
+        .hero-content h1 { font-size: 48px; margin: 0 0 20px; line-height: 1.1; }
+        .hero-content p { font-size: 20px; color: var(--muted); margin-bottom: 32px; }
+        
+        .course-meta { display: flex; gap: 24px; margin-bottom: 40px; }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: var(--muted); }
+        .meta-value { font-size: 18px; font-weight: 700; }
+
+        .cta-box { background: var(--white); padding: 32px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .btn-main { display: block; width: 100%; padding: 18px; border-radius: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: #fff; text-decoration: none; text-align: center; font-size: 18px; font-weight: 800; box-shadow: 0 10px 20px rgba(106, 123, 247, 0.2); transition: transform 0.2s; }
+        .btn-main:hover { transform: translateY(-2px); }
+
+        .syllabus { padding: 80px 0; }
+        .syllabus h2 { font-size: 32px; margin-bottom: 40px; }
+        
+        .module-list { display: flex; flex-direction: column; gap: 16px; }
+        .module-item { background: #fff; padding: 24px; border-radius: 18px; border: 1px solid var(--border); display: flex; align-items: center; gap: 20px; }
+        .module-order { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-weight: 800; color: var(--primary); }
+        .module-info { flex: 1; }
+        .module-title { font-size: 18px; font-weight: 700; margin: 0; }
+        .module-type { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+        
+        .type-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; background: #eef2ff; color: var(--primary); margin-left: 10px; }
+
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; text-align: center; }
+            .hero-content h1 { font-size: 36px; }
+            .course-meta { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container nav">
+            <a href="{% url 'home' %}" class="brand">
+                <span class="brand-badge">AL</span>
+                <span class="brand-title">Adaptive Learning</span>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'landing_courses' %}" style="text-decoration: none; color: var(--muted); font-weight: 700;">Back to Courses</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <h1>{{ course.title }}</h1>
+                    <p>{{ course.description }}</p>
+                    
+                    <div class="course-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Lessons</span>
+                            <span class="meta-value">{{ modules|length }} Modules</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Price</span>
+                            <span class="meta-value" style="color: var(--primary);">FREE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cta-box">
+                    {% if is_enrolled %}
+                        <a href="{% url 'player_course' course.id %}" class="btn-main">Continue Learning</a>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={% url 'enroll_course' course.id %}" class="btn-main">Enroll in Course</a>
+                        <p style="text-align: center; font-size: 13px; color: var(--muted); margin-top: 15px;">Join thousands of students and start your journey today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="syllabus">
+            <div class="container">
+                <h2>Course Syllabus</h2>
+                <div class="module-list">
+                    {% for mod in modules %}
+                    <div class="module-item">
+                        <div class="module-order">{{ forloop.counter }}</div>
+                        <div class="module-info">
+                            <p class="module-type">{{ mod.get_type_display }}</p>
+                            <h4 class="module-title">{{ mod.title }}</h4>
+                        </div>
+                        <span class="type-badge">Locked</span>
+                    </div>
+                    {% empty %}
+                    <p>No modules have been added to this course yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
