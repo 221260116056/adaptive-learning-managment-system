@@ -19,6 +19,7 @@ urlpatterns = [
     path('courses/<int:course_id>/modules/reorder/', views.reorder_modules, name='reorder_modules'),
     path('modules/create/', views.create_module, name='create_module'),
     path('modules/<int:module_id>/edit/', views.edit_module, name='edit_module'),
+    path('modules/<int:module_id>/delete/', views.delete_module, name='delete_module'),
     path('videos/', views.video_manager, name='video_manager'),
     path('settings/', views.profile_settings, name='settings'),
     path('courses/<int:course_id>/delete/', views.delete_course, name='delete_course'),

@@ -295,6 +295,10 @@
                     <div class="module-actions">
                         <a href="{% url 'teacher:preview_module' module.id %}" class="btn-sm" title="Preview" target="_blank">👁 Preview</a>
                         <a href="{% url 'teacher:edit_module' module.id %}" class="btn-sm" title="Edit">✏ Edit</a>
+                        <form action="{% url 'teacher:delete_module' module.id %}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this module?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-sm btn-sm-danger" title="Delete">🗑 Delete</button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}

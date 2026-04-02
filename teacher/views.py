@@ -800,6 +800,21 @@ def edit_module(request, module_id):
 
 
 @teacher_required
+def delete_module(request, module_id):
+    module = get_object_or_404(Module, id=module_id, course__teacher=request.user)
+    course_id = module.course_id
+    title = module.title
+    
+    if request.method == 'POST':
+        module.delete()
+        messages.success(request, f'Module "{title}" has been deleted.')
+    else:
+        messages.error(request, "Invalid request method for deletion.")
+        
+    return redirect('teacher:course_modules', course_id=course_id)
+
+
+@teacher_required
 def review_assignments(request):
     # This view lists all submissions that need review for courses owned by this teacher
     submissions = AssignmentSubmission.objects.filter(
