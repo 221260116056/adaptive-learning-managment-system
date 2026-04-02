@@ -1,0 +1,275 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Student Report | {{ student.username }} | {{ course.title }}{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .layout {
+        display: flex;
+        flex: 1;
+    }
+
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 260px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .main-content {
+        padding: 3rem;
+        flex: 1;
+    }
+
+    .footer {
+        width: 100%;
+        background: #15182f;
+        color: #fff;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+    }
+
+    .report-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+    }
+
+    .stats-tray {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .module-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .module-item:last-child {
+        border-bottom: none;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-completed {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .status-pending {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .progress-track {
+        height: 6px;
+        background: #f1f5f9;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-size: 0.8rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="layout">
+    {% include 'teacher/sidebar.html' %}
+
+    <div class="main-wrapper">
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+                <div>
+                    <a href="{% url 'teacher:course_students' course.id %}" style="color: #64748b; text-decoration: none; font-size: 0.9rem;">← Back to Students</a>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-top: 0.5rem;">Performance Report: {{ student.username }}</h1>
+                    <p style="color: #64748b;">Tracking progress in <strong>{{ course.title }}</strong></p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b;">Enrolled since</div>
+                    <div style="font-weight: 700; color: var(--dark);">{{ enrollment.enrolled_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+
+            <div class="stats-tray">
+                <div class="stat-card">
+                    <span class="stat-label">Course Progress</span>
+                    <span class="stat-value">{{ overall_progress }}%</span>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ overall_progress }}%;"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Modules Completed</span>
+                    <span class="stat-value">{{ completed_count }} / {{ total_modules }}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Quizzes Passed</span>
+                    <span class="stat-value">{% if has_passed_any_quiz %}Yes{% else %}No{% endif %}</span>
+                </div>
+            </div>
+
+            <div class="report-grid">
+                <div class="left-col">
+                    <div class="card">
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 700;">Curriculum Completion</h3>
+                        {% for item in detailed_modules %}
+                        <div class="module-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: var(--dark);">{{ item.module.title }}</div>
+                                <div style="font-size: 0.8rem; color: #64748b;">Type: {{ item.module.type|title }}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                {% if item.is_completed %}
+                                <span class="status-badge status-completed">Completed</span>
+                                <div style="font-size: 0.7rem; color: #64748b; margin-top: 4px;">{{ item.updated_at|date:"M d" }}</div>
+                                {% else %}
+                                <span class="status-badge status-pending">In Progress ({{ item.video_progress|floatformat:0 }}%)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="right-col">
+                    <div class="card">
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 700;">Quiz Scores</h3>
+                        {% if quiz_attempts %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Quiz</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attempt in quiz_attempts %}
+                                <tr>
+                                    <td style="font-size: 0.85rem; font-weight: 600;">{{ attempt.module.title }}</td>
+                                    <td>
+                                        <span style="font-weight: 700; color: {% if attempt.passed %}#059669{% else %}#ef4444{% endif %};">
+                                            {{ attempt.score|floatformat:0 }}%
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p style="font-size: 0.9rem; color: #64748b; text-align: center; padding: 1rem;">No quiz attempts found.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.1rem; font-weight: 700;">Assignments</h3>
+                        {% if assignments %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Module</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in assignments %}
+                                <tr>
+                                    <td style="font-size: 0.85rem; font-weight: 600;">{{ submission.module.title }}</td>
+                                    <td>
+                                        <span class="status-badge {% if submission.status == 'approved' %}status-completed{% else %}status-pending{% endif %}">
+                                            {{ submission.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p style="font-size: 0.9rem; color: #64748b; text-align: center; padding: 1rem;">No assignments submitted.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            © 2026 alms - Adaptive Learning Management System. Instructor Portal.
+        </footer>
+    </div>
+</div>
+{% endblock %}

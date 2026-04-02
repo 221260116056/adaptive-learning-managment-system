@@ -3,10 +3,11 @@ import json
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .decorators import teacher_required
-from student.models import Course, CourseCertificateTemplate, Enrollment, QuizAttempt, Module, StudentProfile, WatchEvent, Certificate, Notification, AssignmentSubmission, Quiz, Question
+from student.models import Course, CourseCertificateTemplate, Enrollment, QuizAttempt, Module, StudentProfile, WatchEvent, Certificate, Notification, AssignmentSubmission, Quiz, Question, ModuleProgress
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from .moodle_manager import MoodleTeacherManager
@@ -566,7 +567,76 @@ def profile_settings(request):
 def course_students(request, course_id):
     course = get_object_or_404(Course, id=course_id, teacher=request.user)
     enrollments = Enrollment.objects.filter(course=course).select_related('student')
-    return render(request, 'teacher/course_students.html', {'course': course, 'enrollments': enrollments, 'active_menu': 'courses'})
+    
+    # Real-time progress calculation
+    total_modules = Module.objects.filter(course=course).count()
+    for enrollment in enrollments:
+        completed_count = ModuleProgress.objects.filter(
+            user=enrollment.student,
+            module__course=course,
+            is_completed=True
+        ).count()
+        if total_modules > 0:
+            enrollment.progress_percent = int((completed_count / total_modules) * 100)
+        else:
+            enrollment.progress_percent = 0
+            
+    return render(request, 'teacher/course_students.html', {
+        'course': course, 
+        'enrollments': enrollments, 
+        'active_menu': 'courses'
+    })
+
+@teacher_required
+def student_course_detail(request, course_id, student_id):
+    course = get_object_or_404(Course, id=course_id, teacher=request.user)
+    student = get_object_or_404(User, id=student_id)
+    enrollment = get_object_or_404(Enrollment, student=student, course=course)
+    
+    modules = Module.objects.filter(course=course).order_by('order')
+    module_progress = ModuleProgress.objects.filter(user=student, module__course=course)
+    
+    # Map progress to modules for easy lookup
+    progress_map = {mp.module_id: mp for mp in module_progress}
+    
+    detailed_modules = []
+    completed_count = 0
+    for m in modules:
+        progress = progress_map.get(m.id)
+        is_completed = progress.is_completed if progress else False
+        if is_completed:
+            completed_count += 1
+            
+        detailed_modules.append({
+            'module': m,
+            'is_completed': is_completed,
+            'video_progress': progress.video_progress if progress else 0,
+            'updated_at': progress.updated_at if progress else None
+        })
+        
+    total_modules = modules.count()
+    overall_progress = int((completed_count / total_modules) * 100) if total_modules > 0 else 0
+    
+    # Quiz attempts and scores
+    quiz_attempts = QuizAttempt.objects.filter(student=student, module__course=course).select_related('module').order_by('-submitted_at')
+    has_passed_any_quiz = quiz_attempts.filter(passed=True).exists()
+    
+    # Assignment submissions
+    assignments = AssignmentSubmission.objects.filter(student=student, module__course=course).select_related('module').order_by('-submitted_at')
+    
+    return render(request, 'teacher/student_course_detail.html', {
+        'course': course,
+        'student': student,
+        'enrollment': enrollment,
+        'detailed_modules': detailed_modules,
+        'overall_progress': overall_progress,
+        'completed_count': completed_count,
+        'total_modules': total_modules,
+        'quiz_attempts': quiz_attempts,
+        'has_passed_any_quiz': has_passed_any_quiz,
+        'assignments': assignments,
+        'active_menu': 'courses'
+    })
 
 @login_required
 def create_module(request):
@@ -585,10 +655,9 @@ def create_module(request):
             if video_file:
                 module.video_file = video_file
                 module.save()
-
-                relative_manifest = convert_to_dash(module.video_file.path, module.id)
-                if relative_manifest:
-                    module.dash_manifest = relative_manifest
+                # Trigger asynchronous transcoding to prevent timeout
+                trigger_dash_transcode(module.id)
+                messages.success(request, "Video module created and processing in background.")
             else:
                 module.delete()
                 messages.error(request, "Video file is required.")
@@ -599,6 +668,8 @@ def create_module(request):
             module.content = request.POST.get("content")
             if request.FILES.get("file"):
                 module.file = request.FILES.get("file")
+            module.save()
+            messages.success(request, "Theory module created successfully.")
 
         # QUIZ
         elif module.type == "quiz":
@@ -622,14 +693,20 @@ def create_module(request):
                         correct_answer=q_correct[i] if i < len(q_correct) else "A",
                         order=i
                     )
-
+            module.save()
+            messages.success(request, "Quiz module created successfully.")
 
         # ASSIGNMENT
         elif module.type == "assignment":
             if request.FILES.get("assignment_file"):
                 module.assignment_task_file = request.FILES.get("assignment_file")
+            module.save()
+            messages.success(request, "Assignment module created successfully.")
 
-        module.save()
+        else:
+            module.save()
+            messages.success(request, "Module created successfully.")
+            
         return redirect("teacher:course_modules", course_id=module.course_id)
 
     return render(request, "teacher/create_module.html", {
@@ -655,9 +732,9 @@ def edit_module(request, module_id):
                 module.video_file = video_file
                 module.save()
 
-                relative_manifest = convert_to_dash(module.video_file.path, module.id)
-                if relative_manifest:
-                    module.dash_manifest = relative_manifest
+                # Async processing to prevent UI lockup
+                trigger_dash_transcode(module.id)
+                messages.success(request, "Video file updated and processing in background.")
             elif module.video_file and not module.dash_manifest:
                 # If no new upload but streaming chunks are missing, rebuild in background.
                 trigger_dash_transcode(module.id)
@@ -711,7 +788,9 @@ def edit_module(request, module_id):
         return redirect("teacher:course_modules", course_id=module.course_id)
 
     quiz = module.quizzes.first()
-    questions = quiz.questions.all().order_by('order') if quiz else []
+    questions = list(quiz.questions.all().order_by('order').values(
+        'text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer'
+    )) if quiz else []
 
     return render(request, "teacher/edit_module.html", {
         "module": module,

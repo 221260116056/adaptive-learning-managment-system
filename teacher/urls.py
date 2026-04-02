@@ -12,6 +12,7 @@ urlpatterns = [
     path('courses/<int:course_id>/edit/', views.course_edit, name='course_edit'),
     path('courses/<int:course_id>/sync/', views.sync_course_to_moodle, name='sync_course_to_moodle'),
     path('courses/<int:course_id>/students/', views.course_students, name='course_students'),
+    path('courses/<int:course_id>/students/<int:student_id>/detail/', views.student_course_detail, name='student_course_detail'),
     
     path('lessons/upload/', views.upload_lesson, name='upload_lesson'),
     path('courses/<int:course_id>/modules/', views.course_modules, name='course_modules'),

@@ -129,12 +129,12 @@
                             <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
                             <td>
                                 <div style="width: 100px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
-                                    <div style="width: 45%; height: 100%; background: var(--success);"></div>
+                                    <div style="width: {{ enrollment.progress_percent }}%; height: 100%; background: var(--success);"></div>
                                 </div>
-                                <span style="font-size: 0.75rem; color: #64748b;">45% Completed</span>
+                                <span style="font-size: 0.75rem; color: #64748b;">{{ enrollment.progress_percent }}% Completed</span>
                             </td>
                             <td>
-                                <button style="background: none; border: 1px solid #e2e8f0; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">View Profile</button>
+                                <a href="{% url 'teacher:student_course_detail' course.id enrollment.student.id %}" class="btn-secondary" style="text-decoration: none; display: inline-block; border: 1px solid #e2e8f0; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; color: var(--dark); font-weight: 600;">View Profile</a>
                             </td>
                         </tr>
                         {% empty %}

@@ -130,6 +130,7 @@
                             <option value="video">Video</option>
                             <option value="theory">Theory</option>
                             <option value="quiz">Quiz</option>
+                            <option value="assignment">Assignment</option>
                         </select>
                     </div>
 
@@ -138,7 +139,7 @@
                         <h3>Video Module</h3>
                         <div class="form-group">
                             <label>Upload Video File <span style="color:red;">*</span></label>
-                            <input type="file" name="video" class="form-control" accept="video/*" required>
+                            <input type="file" name="video" id="video_input" class="form-control" accept="video/*">
                         </div>
                     </div>
 
@@ -168,6 +169,15 @@
                         </div>
                     </div>
 
+                    <!-- Assignment Section -->
+                    <div id="assignmentSection" class="module-section">
+                        <h3>Assignment Module</h3>
+                        <div class="form-group">
+                            <label>Assignment Task File (PDF) <span style="color:red;">*</span></label>
+                            <input type="file" name="assignment_file" id="assignment_input" class="form-control" accept="application/pdf">
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn-submit">Create Module</button>
                 </form>
             </div>
@@ -180,8 +190,12 @@ const typeSelect = document.getElementById("moduleType");
 const videoSection = document.getElementById("videoSection");
 const theorySection = document.getElementById("theorySection");
 const quizSection = document.getElementById("quizSection");
+const assignmentSection = document.getElementById("assignmentSection");
 const questionsContainer = document.getElementById("questionsContainer");
 const addQuestionBtn = document.getElementById("addQuestionBtn");
+
+const videoInput = document.getElementById("video_input");
+const assignmentInput = document.getElementById("assignment_input");
 
 let questionCount = 0;
 
@@ -189,9 +203,18 @@ function toggleSections() {
     videoSection.style.display = "none";
     theorySection.style.display = "none";
     quizSection.style.display = "none";
+    assignmentSection.style.display = "none";
+
+    // Remove required from everything first to prevent hidden field validation blocks
+    videoInput.required = false;
+    assignmentInput.required = false;
+    
+    // We handle quiz requirements by ensuring the container is only populated when needed, 
+    // but browser validation on hidden elements is the real killer here.
 
     if (typeSelect.value === "video") {
         videoSection.style.display = "block";
+        videoInput.required = true;
     } else if (typeSelect.value === "theory") {
         theorySection.style.display = "block";
     } else if (typeSelect.value === "quiz") {
@@ -199,6 +222,9 @@ function toggleSections() {
         if (questionCount === 0) {
             addQuestion(); // Add first question by default
         }
+    } else if (typeSelect.value === "assignment") {
+        assignmentSection.style.display = "block";
+        assignmentInput.required = true;
     }
 }
 
@@ -253,13 +279,12 @@ function addQuestion() {
     questionsContainer.appendChild(questionBlock);
 }
 
-function removeQuestion(id) {
+window.removeQuestion = function(id) {
     const block = document.getElementById(`question_${id}`);
     if (block) {
         block.remove();
-        // Note: we don't decrement questionCount to keep IDs unique, but we could re-index labels if desired
     }
-}
+};
 
 addQuestionBtn.addEventListener("click", addQuestion);
 typeSelect.addEventListener("change", toggleSections);
