@@ -1,3 +1,0 @@
-Module 59 error: Module matching query does not exist.
-Module 61 -> Course 17 (python) | Teacher ID: 2 | User ID: 1
-  is_enrolled: True, is_teacher: False, is_superuser: False

@@ -404,7 +404,12 @@ def student_signup_view(request):
         if form.is_valid():
             user = form.save()
             approval_status = 'pending' if selected_role == 'teacher' else 'approved'
-            StudentProfile.objects.create(user=user, role=selected_role, approval_status=approval_status)
+            
+            # Update the profile created by the signal
+            profile, _ = StudentProfile.objects.get_or_create(user=user)
+            profile.role = selected_role
+            profile.approval_status = approval_status
+            profile.save()
             
             # Sync user to Moodle
             from .moodle_sync import sync_moodle_user
