@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
+
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
@@ -16,6 +18,8 @@ from django.template.loader import get_template, render_to_string
 import base64
 import hashlib
 import json
+import razorpay
+
 from learntrust.access import get_user_role, redirect_for_role, student_required
 from .models import (
     Certificate,
@@ -1132,21 +1136,142 @@ def explore_view(request):
 @student_required
 def enroll_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+    
+    # Check if already enrolled
+    enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
+    if enrollment and enrollment.is_paid:
+        messages.info(request, "You are already enrolled in this course.")
+        return redirect('my_courses')
 
+    # If course is free
+    if not course.price or course.price == 0:
+        enrollment, created = Enrollment.objects.get_or_create(
+            student=request.user,
+            course=course,
+            defaults={'is_paid': True}
+        )
+        if created:
+            # Sync to Moodle
+            profile = getattr(request.user, 'studentprofile', None)
+            if profile and profile.moodle_user_id and course.moodle_course_id:
+                from .moodle_sync import enrol_user_in_course
+                enrol_user_in_course(profile.moodle_user_id, course.moodle_course_id)
+        return redirect('my_courses')
+
+    # If course is paid, redirect to checkout
+    return redirect('checkout', course_id=course.id)
+
+@student_required
+def checkout_view(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Create or get pending enrollment
     enrollment, created = Enrollment.objects.get_or_create(
         student=request.user,
         course=course,
-        defaults={'is_paid': True}
+        defaults={'is_paid': False}
     )
+    
+    # If already paid somehow
+    if enrollment.is_paid:
+        return redirect('my_courses')
 
-    if created:
-        # Sync to Moodle only on new enrollment
-        profile = getattr(request.user, 'studentprofile', None)
-        if profile and profile.moodle_user_id and course.moodle_course_id:
-            from .moodle_sync import enrol_user_in_course
-            enrol_user_in_course(profile.moodle_user_id, course.moodle_course_id)
+    # Initialize Razorpay Client
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    # Create Razorpay Order
+    amount = int(course.price * 100) # amount in paise
+    data = {
+        "amount": amount,
+        "currency": "INR",
+        "receipt": f"receipt_{enrollment.id}",
+        "payment_capture": 1 # auto capture
+    }
+    
+    try:
+        razorpay_order = client.order.create(data=data)
+        # Update enrollment with order ID
+        enrollment.razorpay_order_id = razorpay_order['id']
+        enrollment.save()
+        
+        context = {
+            'course': course,
+            'enrollment': enrollment,
+            'razorpay_order_id': razorpay_order['id'],
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+            'total_amount': course.price,
+            'amount_paise': amount,
+            'currency': 'INR',
+        }
+        return render(request, 'student/checkout.html', context)
+    except Exception as e:
+        messages.error(request, f"Error initializing payment: {str(e)}")
+        return redirect('explore')
 
-    return redirect('my_courses')
+@csrf_exempt
+@student_required
+def payment_verification(request):
+    if request.method == "POST":
+        # Handle COD
+        if request.POST.get('payment_method') == 'cod' or request.POST.get('payment_id') == 'cod':
+            course_id = request.POST.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            enrollment, created = Enrollment.objects.get_or_create(
+                student=request.user,
+                course=course,
+                defaults={'is_paid': True} # For now marking COD as paid immediately as per default behavior
+            )
+            if not enrollment.is_paid:
+                enrollment.is_paid = True
+                enrollment.save()
+            
+            # Sync to Moodle
+            profile = getattr(request.user, 'studentprofile', None)
+            if profile and profile.moodle_user_id and course.moodle_course_id:
+                from .moodle_sync import enrol_user_in_course
+                enrol_user_in_course(profile.moodle_user_id, course.moodle_course_id)
+                
+            messages.success(request, f"Order placed successfully for {course.title} (COD)")
+            return redirect('my_courses')
+
+        # Handle Razorpay
+        try:
+            payment_id = request.POST.get('razorpay_payment_id')
+            order_id = request.POST.get('razorpay_order_id')
+            signature = request.POST.get('razorpay_signature')
+            
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            
+            params_dict = {
+                'razorpay_order_id': order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+            
+            client.utility.verify_payment_signature(params_dict)
+            
+            enrollment = get_object_or_404(Enrollment, razorpay_order_id=order_id)
+            enrollment.is_paid = True
+            enrollment.razorpay_payment_id = payment_id
+            enrollment.save()
+            
+            # Sync to Moodle
+            profile = getattr(request.user, 'studentprofile', None)
+            if profile and profile.moodle_user_id and enrollment.course.moodle_course_id:
+                from .moodle_sync import enrol_user_in_course
+                enrol_user_in_course(profile.moodle_user_id, enrollment.course.moodle_course_id)
+                
+            messages.success(request, f"Successfully enrolled in {enrollment.course.title}")
+            return redirect('my_courses')
+            
+        except razorpay.errors.SignatureVerificationError:
+            messages.error(request, "Payment verification failed.")
+            return redirect('explore')
+        except Exception as e:
+            messages.error(request, f"Payment error: {str(e)}")
+            return redirect('explore')
+            
+    return redirect('explore')
 
 
 from django.views.decorators.csrf import csrf_exempt

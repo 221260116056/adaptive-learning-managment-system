@@ -30,6 +30,9 @@ urlpatterns = [
     # Placeholder for teacher panel
 
     path('enroll/<int:course_id>/', views.enroll_course, name='enroll_course'),
+    path('checkout/<int:course_id>/', views.checkout_view, name='checkout'),
+    path('payment/verify/', views.payment_verification, name='payment_verify'),
+
     path('logout/', views.logout_view, name='logout'),
 
     # APIs

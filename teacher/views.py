@@ -103,7 +103,7 @@ def course_create(request):
             visibility=visibility,
             start_date=start_date,
             teacher=request.user,
-            price=0.0,
+            price=float(request.POST.get('price', 0.0)),
             certificate_signer_name=request.POST.get('signer_name', "Coordinator / Authority"),
             certificate_signer_title=request.POST.get('signer_title', "Head of Department"),
             certificate_auto_issue=request.POST.get('certificate_auto_issue') == 'on',
@@ -175,7 +175,7 @@ def course_edit(request, course_id):
         course.short_name = request.POST.get('short_name')
         course.category_id = int(request.POST.get('category_id', 1))
         course.visibility = request.POST.get('visibility') == '1'
-        course.price = 0.00
+        course.price = float(request.POST.get('price', 0.0))
         course.certificate_auto_issue = request.POST.get('certificate_auto_issue') == 'on'
         if request.FILES.get('thumbnail'):
             course.thumbnail = request.FILES['thumbnail']

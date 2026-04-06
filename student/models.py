@@ -93,6 +93,8 @@ class Enrollment(models.Model):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     is_paid = models.BooleanField(default=False)
+    razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
     enrolled_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

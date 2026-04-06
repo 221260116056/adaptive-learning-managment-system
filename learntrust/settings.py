@@ -169,3 +169,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'Vekariyavraj760@gmail.com'
 EMAIL_HOST_PASSWORD = 'wcerhaxqrcvoivbv'
 DEFAULT_FROM_EMAIL = 'Vekariyavraj760@gmail.com'
+
+# Razorpay Configuration
+RAZORPAY_KEY_ID = 'rzp_test_ytoQRUzHn3jtXL'
+RAZORPAY_KEY_SECRET = 'Sc3eDMyJEuNfGzcf5r5eWiLz'
+

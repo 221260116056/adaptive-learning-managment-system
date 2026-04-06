@@ -124,8 +124,12 @@
                     </div>
                 {% endif %}
                 <span
-                    style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.9); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--primary);">
-                    FREE
+                    style="position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.95); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 800; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    {% if course.price > 0 %}
+                        ₹{{ course.price }}
+                    {% else %}
+                        FREE
+                    {% endif %}
                 </span>
             </div>
 

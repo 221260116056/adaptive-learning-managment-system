@@ -85,7 +85,13 @@
                         </div>
                         <div class="meta-item">
                             <span class="meta-label">Price</span>
-                            <span class="meta-value" style="color: var(--primary);">FREE</span>
+                            <span class="meta-value" style="color: var(--primary);">
+                                {% if course.price > 0 %}
+                                    ₹{{ course.price }}
+                                {% else %}
+                                    FREE
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
