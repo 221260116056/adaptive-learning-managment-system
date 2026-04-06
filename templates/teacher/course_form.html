@@ -74,6 +74,7 @@
         font-family: inherit;
         font-size: 1rem;
         transition: all 0.2s;
+        box-sizing: border-box;
     }
 
     .form-control:focus {
@@ -93,7 +94,7 @@
         font-weight: 700;
         cursor: pointer;
         transition: transform 0.2s;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
     }
 
     .btn-submit:hover {
@@ -104,7 +105,8 @@
     .row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
+        gap: 2rem;
+        margin-bottom: 0.5rem;
     }
 </style>
 {% endblock %}
@@ -117,8 +119,8 @@
     <div class="main-wrapper">
         <main class="main-content">
             <div class="form-card">
-                <div style="margin-bottom: 2rem; text-align: center;">
-                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark);">
+                <div style="margin-bottom: 2.5rem; text-align: center;">
+                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">
                         {% if course %}Edit Existing Course{% else %}Create New Course{% endif %}
                     </h1>
                     <p style="color: #64748b;">This course will be automatically synced with Moodle</p>
@@ -160,29 +162,27 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="start_date">Course Start Date</label>
-                            <input type="datetime-local" name="start_date" id="start_date" class="form-control" value="{{ course.start_date|date:'Y-m-d\TH:i' }}">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="form-group">
                             <label for="price">Course Price (INR)</label>
                             <input type="number" step="0.01" name="price" id="price" class="form-control" value="{{ course.price|default:0.0 }}" placeholder="0.00">
                         </div>
-
-                        <div class="form-group">
-                            <label for="thumbnail">Course Thumbnail (Optional)</label>
-                            <input type="file" name="thumbnail" id="thumbnail" class="form-control" accept="image/*">
-                        </div>
                     </div>
-                    {% if course.thumbnail %}
-                        <p style="margin: -1rem 0 1rem; font-size: 0.85rem; color: #64748b; text-align: right;">
-                            Current thumbnail: {{ course.thumbnail.name }}
-                        </p>
-                    {% endif %}
 
-                    <div class="row">
+                    <div class="form-group">
+                        <label for="start_date">Course Start Date</label>
+                        <input type="datetime-local" name="start_date" id="start_date" class="form-control" value="{{ course.start_date|date:'Y-m-d\TH:i' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="thumbnail">Course Thumbnail (Optional)</label>
+                        <input type="file" name="thumbnail" id="thumbnail" class="form-control" accept="image/*" style="padding: 0.6rem;">
+                        {% if course.thumbnail %}
+                            <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #64748b;">
+                                <strong>Current:</strong> {{ course.thumbnail.name }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="row" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
                         <div class="form-group">
                             <label for="signer_name">Coordinator / Authority</label>
                             <input type="text" name="signer_name" id="signer_name" class="form-control" value="{% if course %}{{ course.certificate_signer_name }}{% else %}Coordinator / Authority{% endif %}" placeholder="Enter name">
@@ -193,13 +193,13 @@
                         </div>
                     </div>
 
-                    <label style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 1rem; font-weight: 600; color: var(--dark);">
-                        <input type="checkbox" name="certificate_auto_issue" {% if course.certificate_auto_issue or not course %}checked{% endif %}>
+                    <label style="display: flex; gap: 0.75rem; align-items: center; margin: 1.5rem 0; font-weight: 600; color: var(--dark); cursor: pointer;">
+                        <input type="checkbox" name="certificate_auto_issue" style="width: 18px; height: 18px;" {% if course.certificate_auto_issue or not course %}checked{% endif %}>
                         Auto-issue certificates on full completion
                     </label>
 
                     <button type="submit" class="btn-submit">
-                        {% if course %}Update and Sync{% else %}Create and Sync to Moodle{% endif %}
+                        {% if course %}Update & Synchronize{% else %}Create & Sync to Moodle{% endif %}
                     </button>
 
                     <a href="{% url 'teacher:dashboard' %}"
