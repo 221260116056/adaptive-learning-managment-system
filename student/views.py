@@ -1212,28 +1212,6 @@ def checkout_view(request, course_id):
 @student_required
 def payment_verification(request):
     if request.method == "POST":
-        # Handle COD
-        if request.POST.get('payment_method') == 'cod' or request.POST.get('payment_id') == 'cod':
-            course_id = request.POST.get('course_id')
-            course = get_object_or_404(Course, id=course_id)
-            enrollment, created = Enrollment.objects.get_or_create(
-                student=request.user,
-                course=course,
-                defaults={'is_paid': True} # For now marking COD as paid immediately as per default behavior
-            )
-            if not enrollment.is_paid:
-                enrollment.is_paid = True
-                enrollment.save()
-            
-            # Sync to Moodle
-            profile = getattr(request.user, 'studentprofile', None)
-            if profile and profile.moodle_user_id and course.moodle_course_id:
-                from .moodle_sync import enrol_user_in_course
-                enrol_user_in_course(profile.moodle_user_id, course.moodle_course_id)
-                
-            messages.success(request, f"Order placed successfully for {course.title} (COD)")
-            return redirect('my_courses')
-
         # Handle Razorpay
         try:
             payment_id = request.POST.get('razorpay_payment_id')

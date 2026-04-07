@@ -206,15 +206,6 @@
                             </div>
                             <div class="option-marker"></div>
                         </label>
-
-                        <label class="payment-option">
-                            <input type="radio" name="payment_method" value="cod">
-                            <div class="option-content">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                                Cash on Delivery (COD)
-                            </div>
-                            <div class="option-marker"></div>
-                        </label>
                     </div>
 
                     <div id="errors"></div>
@@ -325,13 +316,6 @@
                 };
                 const rzp = new Razorpay(options);
                 rzp.open();
-            } else {
-                // For COD, just let it submit
-                const hiddenCod = document.createElement('input');
-                hiddenCod.type = 'hidden';
-                hiddenCod.name = 'payment_id';
-                hiddenCod.value = 'cod';
-                paymentForm.appendChild(hiddenCod);
             }
         });
     });
