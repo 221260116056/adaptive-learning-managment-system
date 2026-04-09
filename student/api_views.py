@@ -19,6 +19,7 @@ from .models import (
 )
 from .views import _ensure_module_quiz, _issue_certificate_if_eligible
 from django.shortcuts import get_object_or_404
+from management.utils import _write_audit_log
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -358,6 +359,8 @@ def submit_quiz_api(request):
         modern_progress.save(update_fields=["is_completed", "video_progress", "updated_at"])
 
         _issue_certificate_if_eligible(request.user, module.course)
+
+    _write_audit_log(request.user, 'Quiz Submission', f"Submitted quiz for '{module.title}' with score {score}%")
 
     return Response({
         "status": "success",

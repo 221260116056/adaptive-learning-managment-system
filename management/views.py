@@ -1,5 +1,11 @@
 import base64
 import csv
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -27,10 +33,8 @@ from student.models import (
 )
 from student.utils import generate_qr_code
 
-
-def _write_audit_log(user, action, details=''):
-    if user and getattr(user, 'is_authenticated', False):
-        AuditLog.objects.create(user=user, action=action, details=details)
+from management.models import AuditLog
+from management.utils import _write_audit_log
 
 @admin_required
 def dashboard(request):
@@ -379,7 +383,11 @@ def private_admin_audit_logs(request):
             Q(details__icontains=query)
         )
     if date_filter:
-        logs = logs.filter(timestamp__date=date_filter)
+        dates = date_filter.split(' to ')
+        if len(dates) == 2:
+            logs = logs.filter(timestamp__date__range=[dates[0], dates[1]])
+        else:
+            logs = logs.filter(timestamp__date=date_filter)
 
     return render(request, 'adminpanel/audit_logs.html', {
         'active_menu': 'audit_logs',
@@ -387,6 +395,104 @@ def private_admin_audit_logs(request):
         'query': query,
         'date_filter': date_filter,
     })
+
+@private_admin_required
+def export_audit_logs_csv(request):
+    query = request.GET.get('q', '').strip()
+    date_filter = request.GET.get('date', '').strip()
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="audit_logs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['User', 'Action', 'Details', 'Timestamp'])
+
+    logs = AuditLog.objects.select_related('user').all()
+    if query:
+        logs = logs.filter(
+            Q(user__email__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(action__icontains=query) |
+            Q(details__icontains=query)
+        )
+    if date_filter:
+        dates = date_filter.split(' to ')
+        if len(dates) == 2:
+            logs = logs.filter(timestamp__date__range=[dates[0], dates[1]])
+        else:
+            logs = logs.filter(timestamp__date=date_filter)
+        
+    logs = logs.order_by('-timestamp')
+        
+    for log in logs:
+        writer.writerow([
+            log.user.email or log.user.username,
+            log.action,
+            log.details or '-',
+            log.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        ])
+
+    return response
+
+@private_admin_required
+def export_audit_logs_pdf(request):
+    query = request.GET.get('q', '').strip()
+    date_filter = request.GET.get('date', '').strip()
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    elements.append(Paragraph("Security Audit Logs", styles['Title']))
+    
+    data = [['User', 'Action', 'Details', 'Timestamp']]
+    logs = AuditLog.objects.select_related('user').all()
+    
+    if query:
+        logs = logs.filter(
+            Q(user__email__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(action__icontains=query) |
+            Q(details__icontains=query)
+        )
+    if date_filter:
+        dates = date_filter.split(' to ')
+        if len(dates) == 2:
+            logs = logs.filter(timestamp__date__range=[dates[0], dates[1]])
+        else:
+            logs = logs.filter(timestamp__date=date_filter)
+        
+    logs = logs.order_by('-timestamp')[:500]
+    
+    for log in logs:
+        user_display = log.user.email or log.user.username
+        data.append([
+            Paragraph(user_display, styles['Normal']),
+            Paragraph(log.action, styles['Normal']),
+            Paragraph(log.details or '-', styles['Normal']),
+            log.timestamp.strftime("%Y-%m-%d %H:%M")
+        ])
+        
+    t = Table(data, colWidths=[150, 150, 300, 100])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 12),
+        ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('WORDWRAP', (0,0), (-1,-1), True),
+    ]))
+    
+    elements.append(t)
+    doc.build(elements)
+    
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="audit_logs.pdf"'
+    return response
 
 
 @private_admin_required

@@ -6,13 +6,17 @@
 
 {% block content %}
 <div class="card">
-    <div class="toolbar">
+    <div class="toolbar" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <h3 style="margin: 0;">Security Event Stream</h3>
-        <form method="get" class="filters">
-            <input type="text" name="q" placeholder="Search email, action, details" value="{{ query }}">
-            <input type="date" name="date" value="{{ date_filter }}">
-            <button class="btn secondary" type="submit">Apply</button>
-        </form>
+        <div style="display:flex; gap:10px;">
+            <form method="get" class="filters" style="margin: 0;">
+                <input type="text" name="q" placeholder="Search email, action, details" value="{{ query }}">
+                <input type="text" name="date" value="{{ date_filter }}" autocomplete="off" placeholder="Select Date Range" style="width: 220px;">
+                <button class="btn secondary" type="submit">Apply</button>
+            </form>
+            <a href="{% url 'adminpanel:export_audit_logs_csv' %}?q={{ query|urlencode }}&date={{ date_filter }}" class="btn">Download CSV</a>
+            <a href="{% url 'adminpanel:export_audit_logs_pdf' %}?q={{ query|urlencode }}&date={{ date_filter }}" class="btn">Download PDF</a>
+        </div>
     </div>
 
     <table>
@@ -38,4 +42,41 @@
         </tbody>
     </table>
 </div>
+
+<!-- Daterangepicker CSS & JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<script>
+$(function() {
+    var dateInput = $('input[name="date"]');
+    
+    dateInput.daterangepicker({
+        opens: 'left',
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        },
+        ranges: {
+           'Today': [moment(), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month': [moment().startOf('month'), moment().endOf('month')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+
+    dateInput.on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' to ' + picker.endDate.format('YYYY-MM-DD'));
+    });
+
+    dateInput.on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+    });
+});
+</script>
 {% endblock %}

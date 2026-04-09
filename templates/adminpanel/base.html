@@ -40,6 +40,19 @@
             position: sticky;
             top: 0;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
 
         .brand {
@@ -293,23 +306,36 @@
                 <h1>Admin Console</h1>
                 <p>Private system operations</p>
             </div>
-            <a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'adminpanel:dashboard' %}">Dashboard</a>
-            <a class="nav-link {% if active_menu == 'requests' %}active{% endif %}" href="{% url 'adminpanel:requests' %}">Requests</a>
-            <a class="nav-link {% if active_menu == 'users' %}active{% endif %}" href="{% url 'adminpanel:users' %}">Users</a>
-            <a class="nav-link {% if active_menu == 'teacher_approvals' %}active{% endif %}" href="{% url 'adminpanel:teacher_approvals' %}">
-                Teacher Approvals
-                {% if admin_pending_teachers_count > 0 %}
-                <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_teachers_count }}</span>
-                {% endif %}
-            </a>
-            <a class="nav-link {% if active_menu == 'certificates' %}active{% endif %}" href="{% url 'adminpanel:certificates' %}">
-                Certificates
-                {% if admin_pending_certificates_count > 0 %}
-                <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_certificates_count }}</span>
-                {% endif %}
-            </a>
-            <a class="nav-link {% if active_menu == 'audit_logs' %}active{% endif %}" href="{% url 'adminpanel:audit_logs' %}">Audit Logs</a>
-            <a class="nav-link {% if active_menu == 'system_config' %}active{% endif %}" href="{% url 'adminpanel:system_config' %}">System Config</a>
+            
+            <nav class="sidebar-nav">
+                <a class="nav-link {% if active_menu == 'dashboard' %}active{% endif %}" href="{% url 'adminpanel:dashboard' %}">Dashboard</a>
+                <a class="nav-link {% if active_menu == 'requests' %}active{% endif %}" href="{% url 'adminpanel:requests' %}">Requests</a>
+                <a class="nav-link {% if active_menu == 'users' %}active{% endif %}" href="{% url 'adminpanel:users' %}">Users</a>
+                <a class="nav-link {% if active_menu == 'teacher_approvals' %}active{% endif %}" href="{% url 'adminpanel:teacher_approvals' %}">
+                    Teacher Approvals
+                    {% if admin_pending_teachers_count > 0 %}
+                    <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_teachers_count }}</span>
+                    {% endif %}
+                </a>
+                <a class="nav-link {% if active_menu == 'certificates' %}active{% endif %}" href="{% url 'adminpanel:certificates' %}">
+                    Certificates
+                    {% if admin_pending_certificates_count > 0 %}
+                    <span style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; float: right;">{{ admin_pending_certificates_count }}</span>
+                    {% endif %}
+                </a>
+                <a class="nav-link {% if active_menu == 'audit_logs' %}active{% endif %}" href="{% url 'adminpanel:audit_logs' %}">Audit Logs</a>
+                <a class="nav-link {% if active_menu == 'system_config' %}active{% endif %}" href="{% url 'adminpanel:system_config' %}">System Config</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{% url 'adminpanel:profile' %}" style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff;">
+                    <span class="avatar" style="background: var(--primary); color: #fff; border: none; width: 38px; height: 38px; font-size: 14px;">{{ request.user.username|slice:":1"|upper }}</span>
+                    <div style="flex: 1; min-width: 0;">
+                        <p style="margin: 0; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ request.user.username }}</p>
+                        <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.5);">Administrator</p>
+                    </div>
+                </a>
+            </div>
         </aside>
 
         <main class="content">
@@ -317,9 +343,6 @@
                 <div class="topbar-title">
                     <h2>{% block page_title %}Admin Panel{% endblock %}</h2>
                     <p>{% block page_subtitle %}Secure platform administration{% endblock %}</p>
-                </div>
-                <div class="topbar-meta">
-                    <a class="icon-link avatar" href="{% url 'adminpanel:profile' %}" title="Profile">{{ request.user.username|slice:":1"|upper }}</a>
                 </div>
             </div>
 

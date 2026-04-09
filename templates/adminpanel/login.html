@@ -5,82 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Console Login</title>
     <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at top, #2b3a67 0%, #0f172a 55%, #050814 100%);
-            color: #fff;
-        }
-        .card {
-            width: 100%;
-            max-width: 460px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 24px;
-            padding: 34px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
-            backdrop-filter: blur(12px);
-        }
-        h1 { margin: 0 0 8px; font-size: 34px; }
-        p { margin: 0 0 24px; color: rgba(255,255,255,0.72); line-height: 1.6; }
-        label { display: block; font-weight: 700; margin-bottom: 8px; }
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.14);
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-            margin-bottom: 18px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            border: 0;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
-            color: #fff;
-            font-weight: 800;
-            cursor: pointer;
-        }
-        .messages { margin-bottom: 16px; }
-        .message {
-            padding: 12px 14px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            background: rgba(239, 68, 68, 0.18);
-            color: #fecaca;
-        }
+        body{margin:0;background:linear-gradient(135deg,#eef4ff 0%,#f7f2ff 100%);min-height:100vh;display:flex;flex-direction:column;font-family:'Inter',Arial,sans-serif}
+        .content{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem}
+        .auth-shell{display:flex;max-width:980px;width:92%;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 24px 60px rgba(79,70,229,.12);min-height:560px}
+        .auth-left{flex:1;background:linear-gradient(180deg,#6a7bf7 0%,#6f49b9 100%);padding:3rem;color:#fff;display:flex;flex-direction:column}
+        .auth-right{flex:1;padding:3rem;background:#fff;display:flex;flex-direction:column;justify-content:center}
+        .brand{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem}
+        .badge{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-weight:800;font-size:1.4rem}
+        .brand-text strong{display:block;font-size:1.6rem}
+        .brand-text span{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;opacity:.88}
+        .auth-title{font-size:2.3rem;font-weight:800;margin:0 0 1rem}
+        .auth-subtitle{font-size:1rem;line-height:1.7;opacity:.92;margin-bottom:2rem}
+        .mode-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.16);font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:1rem}
+        
+        .form-title{font-size:1.75rem;font-weight:800;color:#1f2937;margin:0 0 .35rem}
+        .form-subtitle{font-size:.95rem;color:#64748b;margin:0 0 1.5rem}
+        .auth-right form p{margin-bottom:1rem;text-align:left}
+        .auth-right form label{display:block;font-size:.82rem;font-weight:700;color:#334155;margin-bottom:.35rem}
+        .auth-right form input[type="text"],.auth-right form input[type="password"]{width:100%;padding:.9rem 1rem;border:1px solid #dbe2ea;border-radius:12px;outline:none;font-family:inherit;box-sizing:border-box;margin-bottom: 1rem;}
+        .auth-right form input:focus{border-color:#6a7bf7}
+        .btn-submit{display:block;width:100%;padding:.95rem;background:linear-gradient(135deg,#6a7bf7 0%,#6f49b9 100%);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;margin-top:1rem}
+        
+        .helper-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;font-size:.86rem;color:#64748b}
+        .message { padding: 12px 14px; border-radius: 12px; margin-bottom: 15px; font-weight: 600; font-size: 0.9rem; }
+        .message.error { background: #fee2e2; color: #dc2626; }
+        .message.success { background: #d1fae5; color: #059669; }
+        .message.info { background: #e0f2fe; color: #0369a1; }
+        
+        .copy-footer { text-align: center; color: #64748b; font-size: 0.85rem; padding: 1rem; margin-top: auto; }
+        @media (max-width:850px){.auth-shell{flex-direction:column;min-height:auto;width:95%;margin:1rem auto}.auth-left{padding:2rem}.auth-right{padding:2rem}.auth-title{font-size:1.8rem}.brand{margin-bottom:1rem}}
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Admin Console</h1>
-        <p>Authenticate into the private operations panel with an administrator identity.</p>
+    <div class="content">
+        <div class="auth-shell">
+            <div class="auth-left">
+                <div class="brand">
+                    <div class="badge">AL</div>
+                    <div class="brand-text">
+                        <strong>Adaptive</strong>
+                        <span>Learning LMS</span>
+                    </div>
+                </div>
+                <div class="mode-badge">Private Operations</div>
+                <h1 class="auth-title">Admin Console</h1>
+                <p class="auth-subtitle">Welcome back. Authenticate into the private operations panel with an administrator identity.</p>
+            </div>
 
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="message">{{ message }}</div>
-            {% endfor %}
+            <div class="auth-right">
+                <h2 class="form-title">Login</h2>
+                <p class="form-subtitle">Enter your private admin session credentials.</p>
+                
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message {{ message.tags|default:'error' }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="identity">Admin Identity</label>
+                    <input id="identity" name="identity" type="text" placeholder="Enter username or email" required>
+
+                    <label for="password">Universal Key</label>
+                    <input id="password" name="password" type="password" placeholder="Enter password" required>
+
+                    <div class="helper-row">
+                        <span>Secure Private Environment</span>
+                    </div>
+                    <button type="submit" class="btn-submit">Authenticate Session</button>
+                </form>
+            </div>
         </div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <label for="identity">Admin Identity</label>
-            <input id="identity" name="identity" type="text" placeholder="username or email" required>
-
-            <label for="password">Universal Key</label>
-            <input id="password" name="password" type="password" placeholder="password" required>
-
-            <button type="submit">Authenticate Session</button>
-        </form>
+    </div>
+    <div class="copy-footer">
+        &copy; 2026 alms - Adaptive Learning Management System. Cryptographically Enforced.
     </div>
 </body>
 </html>

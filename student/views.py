@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
+from management.utils import _write_audit_log
+
 
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -419,12 +421,15 @@ def student_signup_view(request):
             from .moodle_sync import sync_moodle_user
             sync_moodle_user(user, password=form.cleaned_data.get('password'))
             
+            _write_audit_log(user, 'User Signup', f'Signed up as {selected_role}')
+
             if selected_role == 'teacher':
                 from django.contrib import messages
                 messages.info(request, "Your account is under review. You will be notified once approved.")
                 return redirect('login')
             else:
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                _write_audit_log(user, 'User Login', f'Automatic login after signup as {selected_role}')
                 return redirect('dashboard')
     else:
         form = CustomUserCreationForm()
@@ -438,6 +443,9 @@ def student_login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            
+            role = user.studentprofile.role if hasattr(user, 'studentprofile') else 'superuser'
+            _write_audit_log(user, 'User Login', f'Successful login as {role}')
             
             # Check approval for teachers
             try:
@@ -473,6 +481,7 @@ def student_login_view(request):
 
 
 def logout_view(request):
+    _write_audit_log(request.user, 'User Logout', 'User logged out intentionally')
     logout(request)
     return redirect('home')
 
@@ -543,8 +552,10 @@ def change_password(request):
             request.user.set_password(new_password)
             request.user.save()
             update_session_auth_hash(request, request.user)
+            _write_audit_log(request.user, 'Password Change', 'Password updated successfully')
             messages.success(request, "Password updated successfully")
         else:
+            _write_audit_log(request.user, 'Password Change Failed', 'Incorrect old password')
             messages.error(request, "Old password incorrect")
 
         return redirect("settings")
@@ -886,6 +897,8 @@ def submit_assignment_api(request):
                 }
             )
             
+            _write_audit_log(request.user, 'Assignment Submission', f"Submitted assignment for '{module.title}'")
+            
             return JsonResponse({
                 'status': 'success',
                 'message': 'Assignment submitted successfully. Waiting for teacher review.'
@@ -1156,6 +1169,7 @@ def enroll_course(request, course_id):
             if profile and profile.moodle_user_id and course.moodle_course_id:
                 from .moodle_sync import enrol_user_in_course
                 enrol_user_in_course(profile.moodle_user_id, course.moodle_course_id)
+            _write_audit_log(request.user, 'Course Enrollment', f'Enrolled in {course.title} (Free)')
         return redirect('my_courses')
 
     # If course is paid, redirect to checkout
@@ -1239,6 +1253,7 @@ def payment_verification(request):
                 from .moodle_sync import enrol_user_in_course
                 enrol_user_in_course(profile.moodle_user_id, enrollment.course.moodle_course_id)
                 
+            _write_audit_log(request.user, 'Course Enrollment', f'Enrolled in {enrollment.course.title} (Paid)')
             messages.success(request, f"Successfully enrolled in {enrollment.course.title}")
             return redirect('my_courses')
             

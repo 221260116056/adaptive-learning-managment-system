@@ -13,6 +13,7 @@ from django.utils import timezone
 from .moodle_manager import MoodleTeacherManager
 from .video_processing import convert_to_dash, trigger_dash_transcode
 from django.conf import settings
+from management.utils import _write_audit_log
 
 
 def _ensure_moodle_course(course):
@@ -145,11 +146,13 @@ def course_create(request):
             course.moodle_sync_status = 'synced'
             course.moodle_last_error = ''
             course.save(update_fields=['moodle_course_id', 'moodle_sync_status', 'moodle_last_error'])
+            _write_audit_log(request.user, 'Course Creation', f'Created "{course.title}" and synced to Moodle')
             messages.success(request, 'Course created in Django and synced to Moodle.')
         else:
             course.moodle_sync_status = 'failed'
             course.moodle_last_error = result.get('error', 'Unknown Moodle sync error') if isinstance(result, dict) else 'Unknown Moodle sync error'
             course.save(update_fields=['moodle_sync_status', 'moodle_last_error'])
+            _write_audit_log(request.user, 'Course Creation', f'Created "{course.title}" (Moodle sync failed)')
             messages.warning(
                 request,
                 f"Course was created only in Django. Moodle sync failed: {course.moodle_last_error}",
@@ -182,6 +185,7 @@ def course_edit(request, course_id):
         course.certificate_signer_name = request.POST.get('signer_name', course.certificate_signer_name)
         course.certificate_signer_title = request.POST.get('signer_title', course.certificate_signer_title)
         course.save()
+        _write_audit_log(request.user, 'Course Edit', f'Updated course "{course.title}"')
         return redirect('teacher:course_list')
     
     return render(request, 'teacher/course_form.html', {
@@ -219,6 +223,7 @@ def delete_course(request, course_id):
             messages.success(request, f'Course "{title}" has been deleted.')
         # 2. Delete from Django
         course.delete()
+        _write_audit_log(request.user, 'Course Deletion', f'Deleted course "{title}"')
     return redirect('teacher:dashboard')
 
 @teacher_required
@@ -366,6 +371,7 @@ def upload_lesson(request):
             return redirect('teacher:upload_lesson')
 
         # Module sync to Moodle is disabled for stability
+        _write_audit_log(request.user, 'Module Creation', f"Created {module_type} module '{title}' for course '{course.title}'")
         messages.success(request, 'Module created successfully in LearnTrust.')
         return redirect('teacher:course_modules', course_id=course.id)
 
@@ -435,6 +441,7 @@ def teacher_approve_certificate(request, certificate_id):
             message=f"Your certificate request for {certificate.course.title} has been approved by the teacher and is now awaiting final admin verification.",
             link=reverse('certificates')
         )
+        _write_audit_log(request.user, 'Certificate Approved', f'Approved certificate for {certificate.user.username} in {certificate.course.title}')
         messages.success(request, f"Certificate request for {certificate.user.username} approved and sent to admin for final issuance.")
             
         Notification.objects.get_or_create(
@@ -455,6 +462,7 @@ def teacher_reject_certificate(request, certificate_id):
             message=f"Certificate for {certificate.course.title} has been rejected by teacher.",
             link=reverse('certificates')
         )
+        _write_audit_log(request.user, 'Certificate Rejected', f'Rejected certificate for {certificate.user.username} in {certificate.course.title}')
     return redirect('teacher:teacher_certificates')
 
 @teacher_required
@@ -785,6 +793,7 @@ def edit_module(request, module_id):
                 module.assignment_task_file = request.FILES.get("assignment_file")
 
         module.save()
+        _write_audit_log(request.user, 'Module Edit', f"Updated {module.type} module '{module.title}' in course '{module.course.title}'")
         return redirect("teacher:course_modules", course_id=module.course_id)
 
     quiz = module.quizzes.first()
@@ -807,6 +816,7 @@ def delete_module(request, module_id):
     
     if request.method == 'POST':
         module.delete()
+        _write_audit_log(request.user, 'Module Deletion', f"Deleted module '{title}' from course ID {course_id}")
         messages.success(request, f'Module "{title}" has been deleted.')
     else:
         messages.error(request, "Invalid request method for deletion.")
@@ -858,6 +868,7 @@ def review_submission_api(request, submission_id):
                 from student.views import _issue_certificate_if_eligible
                 _issue_certificate_if_eligible(submission.student, submission.module.course)
                 
+            _write_audit_log(request.user, 'Assignment Reviewed', f"{status.capitalize()} assignment by {submission.student.username} for module '{submission.module.title}'")
             messages.success(request, f"Assignment {status} successfully.")
         
         return redirect('teacher:review_assignments')
