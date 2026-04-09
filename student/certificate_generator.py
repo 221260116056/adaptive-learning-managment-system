@@ -7,7 +7,8 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
-from .models import Certificate
+from reportlab.lib.utils import ImageReader
+from .models import Certificate, PlatformSetting
 
 def generate_certificate_pdf(certificate_obj):
     """
@@ -58,20 +59,40 @@ def generate_certificate_pdf(certificate_obj):
     p.drawCentredString(width/2, height - 14.5 * cm, f"Completed on {issued_date}")
 
     # 7. Signature Section
-    # Left side: Date & ID
-    p.setFont("Helvetica-Bold", 10)
-    p.drawString(3*cm, 4*cm, f"CERTIFICATE ID: {certificate_obj.certificate_id}")
     
-    # Right side: Signer
-    p.line(width-9*cm, 4*cm, width-3*cm, 4*cm) # Signature Line
+    # Platform / Admin Signature (Left Side)
+    p.line(3*cm, 4*cm, 9*cm, 4*cm) # Admin Signature Line
     p.setFont("Helvetica-Bold", 12)
-    p.drawCentredString(width-6*cm, 3.5*cm, certificate_obj.course.certificate_signer_name)
-    p.setFont("Helvetica", 10)
-    p.drawCentredString(width-6*cm, 3*cm, certificate_obj.course.certificate_signer_title)
+    p.drawCentredString(6*cm, 3.5*cm, "Platform Administrator")
+    config = PlatformSetting.objects.first()
+    if config and config.admin_signature:
+        try:
+            admin_sig_path = config.admin_signature.path
+            if os.path.exists(admin_sig_path):
+                # Draw Admin Signature Image
+                p.drawImage(ImageReader(admin_sig_path), 4*cm, 4.1*cm, width=4*cm, height=2*cm, preserveAspectRatio=True, mask='auto')
+        except Exception:
+            pass
 
-    # 8. QR Code Generation for Verification
-    # Construct verification URL
-    base_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000') # Placeholder if not set
+    # Teacher Signature (Right Side)
+    p.line(width-9*cm, 4*cm, width-3*cm, 4*cm) # Teacher Signature Line
+    p.setFont("Helvetica-Bold", 12)
+    teacher_name = f"{certificate_obj.course.teacher.first_name} {certificate_obj.course.teacher.last_name}".strip() or certificate_obj.course.teacher.username
+    p.drawCentredString(width-6*cm, 3.5*cm, teacher_name)
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(width-6*cm, 3*cm, "Course Instructor")
+    
+    if certificate_obj.course.teacher_signature:
+        try:
+            teacher_sig_path = certificate_obj.course.teacher_signature.path
+            if os.path.exists(teacher_sig_path):
+                # Draw Teacher Signature Image
+                p.drawImage(ImageReader(teacher_sig_path), width-8*cm, 4.1*cm, width=4*cm, height=2*cm, preserveAspectRatio=True, mask='auto')
+        except Exception:
+            pass
+
+    # 8. QR Code Generation for Verification (Center)
+    base_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000')
     verify_url = f"{base_url}/verify-certificate/{certificate_obj.certificate_id}/"
     
     qr = qrcode.QRCode(box_size=10, border=2)
@@ -84,10 +105,14 @@ def generate_certificate_pdf(certificate_obj):
     qr_buffer.seek(0)
     
     # Draw QR on PDF
-    from reportlab.lib.utils import ImageReader
-    p.drawImage(ImageReader(qr_buffer), width/2 - 1.5*cm, 3*cm, width=3*cm, height=3*cm)
+    p.drawImage(ImageReader(qr_buffer), width/2 - 1.5*cm, 3.5*cm, width=3*cm, height=3*cm)
     p.setFont("Helvetica", 7)
-    p.drawCentredString(width/2, 2.7*cm, "Scan to Verify")
+    p.drawCentredString(width/2, 3.2*cm, "Scan to Verify")
+    
+    # Draw Certificate ID under QR Code
+    p.setFont("Helvetica-Bold", 9)
+    p.setFillColor(colors.HexColor("#64748B"))
+    p.drawCentredString(width/2, 2.7*cm, f"CERTIFICATE ID: {certificate_obj.certificate_id}")
 
     # 9. Finalize
     p.showPage()

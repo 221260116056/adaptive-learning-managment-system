@@ -505,7 +505,16 @@ def private_admin_system_config(request):
         config.smtp_host = request.POST.get('smtp_host', '').strip()
         config.smtp_port = int(request.POST.get('smtp_port') or 587)
         config.video_host = request.POST.get('video_host', '').strip()
-        config.certificate_signer = request.POST.get('certificate_signer', '').strip()
+        if request.FILES.get('admin_signature'):
+            config.admin_signature = request.FILES['admin_signature']
+        elif request.POST.get('admin_signature_base64'):
+            import base64
+            from django.core.files.base import ContentFile
+            sig_data = request.POST.get('admin_signature_base64')
+            if ';base64,' in sig_data:
+                format, imgstr = sig_data.split(';base64,')
+                data = ContentFile(base64.b64decode(imgstr))
+                config.admin_signature.save(f'admin_sig_{config.id}.png', data, save=False)
         config.save()
         _write_audit_log(request.user, 'Updated system config', f'Platform name set to {config.platform_name}')
         messages.success(request, 'System configuration updated.')

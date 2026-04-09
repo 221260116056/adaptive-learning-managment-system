@@ -109,6 +109,7 @@
         margin-bottom: 0.5rem;
     }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -182,15 +183,26 @@
                         {% endif %}
                     </div>
 
-                    <div class="row" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
-                        <div class="form-group">
-                            <label for="signer_name">Coordinator / Authority</label>
-                            <input type="text" name="signer_name" id="signer_name" class="form-control" value="{% if course %}{{ course.certificate_signer_name }}{% else %}Coordinator / Authority{% endif %}" placeholder="Enter name">
+                    <div class="form-group" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+                        
+                        <label>Teacher Digital Signature (Optional)</label>
+                        <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; background: #fff; margin-bottom: 10px;">
+                            <canvas id="teacher_signature_pad" width="600" height="150" style="width: 100%; border-bottom: 1px dotted #ccc; touch-action: none; cursor: crosshair;"></canvas>
+                            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                                <input type="text" id="type_teacher_signature" placeholder="Or type your name to generate signature..." style="flex: 1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                                <button type="button" id="generate_teacher_signature" style="background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Generate</button>
+                                <button type="button" id="clear_teacher_signature" style="background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Clear</button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="signer_title">Head of Department</label>
-                            <input type="text" name="signer_title" id="signer_title" class="form-control" value="{% if course %}{{ course.certificate_signer_title }}{% else %}Head of Department{% endif %}" placeholder="Enter title">
-                        </div>
+                        <input type="hidden" name="teacher_signature_base64" id="teacher_signature_base64">
+                        
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 5px;">Or optionally upload an image instead:</div>
+                        <input type="file" name="teacher_signature" id="teacher_signature" class="form-control" accept="image/*" style="padding: 0.6rem;">
+                        {% if course.teacher_signature %}
+                            <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #64748b;">
+                                <strong>Current Signature Uploaded:</strong> {{ course.teacher_signature.name }}
+                            </p>
+                        {% endif %}
                     </div>
 
                     <label style="display: flex; gap: 0.75rem; align-items: center; margin: 1.5rem 0; font-weight: 600; color: var(--dark); cursor: pointer;">
@@ -216,4 +228,69 @@
 </div>
 {% endblock %}
 
-{% block footer %}{% endblock %}
+{% block footer %}
+<!-- Signature Pad Library -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var canvas = document.getElementById('teacher_signature_pad');
+    var signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(30, 41, 59)'
+    });
+    
+    document.getElementById('clear_teacher_signature').addEventListener('click', function () {
+        signaturePad.clear();
+        document.getElementById('type_teacher_signature').value = '';
+    });
+    
+    document.getElementById('generate_teacher_signature').addEventListener('click', function () {
+        var text = document.getElementById('type_teacher_signature').value.trim();
+        if (text) {
+            signaturePad.clear();
+            var ctx = canvas.getContext('2d');
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            
+            // Re-apply scale matching the internal canvas state
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0); 
+            
+            var fontSize = 100;
+            ctx.font = fontSize + 'px "Dancing Script", cursive';
+            var textWidth = ctx.measureText(text).width;
+            if (textWidth > canvas.offsetWidth - 40) {
+                fontSize = Math.floor(100 * ((canvas.offsetWidth - 40) / textWidth));
+                ctx.font = fontSize + 'px "Dancing Script", cursive';
+            }
+
+            ctx.fillStyle = 'rgb(30, 41, 59)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            var centerX = canvas.offsetWidth / 2;
+            var centerY = canvas.offsetHeight / 2;
+            
+            ctx.fillText(text, centerX, centerY);
+        }
+    });
+    
+    document.querySelector('form').addEventListener('submit', function(e) {
+        var isTyped = document.getElementById('type_teacher_signature').value.trim() !== "";
+        // If they drew something, or typed something, grab the canvas
+        if (!signaturePad.isEmpty() || isTyped) {
+            document.getElementById('teacher_signature_base64').value = canvas.toDataURL("image/png");
+        }
+    });
+
+    // Resize canvas on initialization for hi-res screens
+    function resizeCanvas() {
+        var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = 150 * ratio; // Fixed height logic
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear(); // otherwise drawing is off
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+});
+</script>
+{% endblock %}

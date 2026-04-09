@@ -5,7 +5,8 @@
 {% block page_subtitle %}Update operational settings for the LMS platform{% endblock %}
 
 {% block content %}
-<form method="post" class="card">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<form method="post" enctype="multipart/form-data" class="card">
     {% csrf_token %}
     <div class="form-grid">
         <div class="form-group">
@@ -13,8 +14,22 @@
             <input id="platform_name" type="text" name="platform_name" value="{{ config.platform_name }}">
         </div>
         <div class="form-group">
-            <label for="certificate_signer">Certificate Signer</label>
-            <input id="certificate_signer" type="text" name="certificate_signer" value="{{ config.certificate_signer }}">
+            <label>Admin Digital Signature</label>
+            <div style="border: 1px solid #dbe2ea; border-radius: 12px; padding: 10px; background: #fff;">
+                <canvas id="admin_signature_pad" width="600" height="150" style="width: 100%; border-bottom: 1px dotted #ccc; touch-action: none; cursor: crosshair;"></canvas>
+                <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                    <input type="text" id="type_admin_signature" placeholder="Or type your name to generate signature..." style="flex: 1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;">
+                    <button type="button" id="generate_admin_signature" class="btn secondary" style="padding: 4px 10px; font-size: 0.85rem;">Generate</button>
+                    <button type="button" id="clear_admin_signature" class="btn secondary" style="padding: 4px 10px; font-size: 0.8rem; background:#fee2e2; color:#dc2626; border:none;">Clear</button>
+                </div>
+            </div>
+            <input type="hidden" name="admin_signature_base64" id="admin_signature_base64">
+            
+            <div style="margin-top: 10px; font-size: 0.9rem; color: #64748b;">Or optionally upload an image:</div>
+            <input id="admin_signature" type="file" name="admin_signature" accept="image/*" style="padding: 9px; margin-top: 5px;">
+            {% if config.admin_signature %}
+            <div style="font-size: 0.8rem; margin-top: 5px; color: #6b7280;">Current: {{ config.admin_signature.name }}</div>
+            {% endif %}
         </div>
         <div class="form-group">
             <label for="email_from_address">Email From Address</label>
@@ -45,4 +60,67 @@
         <button class="btn primary" type="submit">Save Configuration</button>
     </div>
 </form>
+
+<!-- Signature Pad Library -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var canvas = document.getElementById('admin_signature_pad');
+    var signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        penColor: 'rgb(15, 23, 42)'
+    });
+    
+    document.getElementById('clear_admin_signature').addEventListener('click', function () {
+        signaturePad.clear();
+        document.getElementById('type_admin_signature').value = '';
+    });
+    
+    document.getElementById('generate_admin_signature').addEventListener('click', function () {
+        var text = document.getElementById('type_admin_signature').value.trim();
+        if (text) {
+            signaturePad.clear();
+            var ctx = canvas.getContext('2d');
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0); 
+
+            var fontSize = 100;
+            ctx.font = fontSize + 'px "Dancing Script", cursive';
+            var textWidth = ctx.measureText(text).width;
+            if (textWidth > canvas.offsetWidth - 40) {
+                fontSize = Math.floor(100 * ((canvas.offsetWidth - 40) / textWidth));
+                ctx.font = fontSize + 'px "Dancing Script", cursive';
+            }
+
+            ctx.fillStyle = 'rgb(15, 23, 42)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            var centerX = canvas.offsetWidth / 2;
+            var centerY = canvas.offsetHeight / 2;
+            
+            ctx.fillText(text, centerX, centerY);
+        }
+    });
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        var isTyped = document.getElementById('type_admin_signature').value.trim() !== "";
+        if (!signaturePad.isEmpty() || isTyped) {
+            document.getElementById('admin_signature_base64').value = canvas.toDataURL("image/png");
+        }
+    });
+
+    // Resize canvas on initialization for hi-res screens
+    function resizeCanvas() {
+        var ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear(); // otherwise drawing is off
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+});
+</script>
 {% endblock %}

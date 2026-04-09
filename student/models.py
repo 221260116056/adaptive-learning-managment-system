@@ -80,8 +80,7 @@ class Course(models.Model):
     moodle_last_error = models.TextField(blank=True)
     thumbnail = models.ImageField(upload_to='course_thumbnails/', blank=True, null=True)
     is_published = models.BooleanField(default=True)
-    certificate_signer_name = models.CharField(max_length=255, default="Coordinator / Authority")
-    certificate_signer_title = models.CharField(max_length=255, default="Head of Department")
+    teacher_signature = models.ImageField(upload_to='signatures/teacher/', blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -407,7 +406,7 @@ class PlatformSetting(models.Model):
     maintenance_mode = models.BooleanField(default=False)
     video_host = models.CharField(max_length=255, blank=True)
     signed_url_secret = models.CharField(max_length=255, blank=True)
-    certificate_signer = models.CharField(max_length=255, blank=True)
+    admin_signature = models.ImageField(upload_to='signatures/admin/', blank=True, null=True)
     token_ttl_seconds = models.PositiveIntegerField(default=300)
     attention_monitoring_enabled = models.BooleanField(default=False)
     siem_endpoint = models.URLField(blank=True)

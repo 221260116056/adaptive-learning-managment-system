@@ -234,7 +234,10 @@
                     </div>
                     <h1>📚 {{ course.title }}</h1>
                 </div>
-                <a href="{% url 'teacher:create_module' %}" class="btn-primary">+ Add Module</a>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="{% url 'teacher:course_edit' course.id %}" class="btn-primary" style="background: linear-gradient(135deg, #0f172a, #334155);"><span style="font-size: 1rem;">⚙</span> Course Settings & Signature</a>
+                    <a href="{% url 'teacher:create_module' %}" class="btn-primary">+ Add Module</a>
+                </div>
             </div>
 
             <!-- Stats -->

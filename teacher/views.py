@@ -105,13 +105,23 @@ def course_create(request):
             start_date=start_date,
             teacher=request.user,
             price=float(request.POST.get('price', 0.0)),
-            certificate_signer_name=request.POST.get('signer_name', "Coordinator / Authority"),
-            certificate_signer_title=request.POST.get('signer_title', "Head of Department"),
             certificate_auto_issue=request.POST.get('certificate_auto_issue') == 'on',
         )
         if request.FILES.get('thumbnail'):
             course.thumbnail = request.FILES['thumbnail']
             course.save(update_fields=['thumbnail'])
+        if request.FILES.get('teacher_signature'):
+            course.teacher_signature = request.FILES['teacher_signature']
+            course.save(update_fields=['teacher_signature'])
+        elif request.POST.get('teacher_signature_base64'):
+            import base64
+            from django.core.files.base import ContentFile
+            sig_data = request.POST.get('teacher_signature_base64')
+            if ';base64,' in sig_data:
+                format, imgstr = sig_data.split(';base64,')
+                data = ContentFile(base64.b64decode(imgstr))
+                course.teacher_signature.save(f'teacher_sig_{course.id}.png', data)
+            
         CourseCertificateTemplate.objects.create(
             course=course,
             signer_name=request.POST.get('signer_name', 'Coordinator / Authority'),
@@ -182,8 +192,32 @@ def course_edit(request, course_id):
         course.certificate_auto_issue = request.POST.get('certificate_auto_issue') == 'on'
         if request.FILES.get('thumbnail'):
             course.thumbnail = request.FILES['thumbnail']
-        course.certificate_signer_name = request.POST.get('signer_name', course.certificate_signer_name)
-        course.certificate_signer_title = request.POST.get('signer_title', course.certificate_signer_title)
+        if request.FILES.get('teacher_signature'):
+            course.teacher_signature = request.FILES['teacher_signature']
+            # Invalidate generated PDFs to force regeneration with new signature
+            from student.models import Certificate
+            for cert in Certificate.objects.filter(course=course):
+                if cert.certificate_file:
+                    cert.certificate_file.delete(save=False)
+                cert.certificate_file = None
+                cert.save(update_fields=['certificate_file'])
+
+        elif request.POST.get('teacher_signature_base64'):
+            import base64
+            from django.core.files.base import ContentFile
+            sig_data = request.POST.get('teacher_signature_base64')
+            if ';base64,' in sig_data:
+                format, imgstr = sig_data.split(';base64,')
+                data = ContentFile(base64.b64decode(imgstr))
+                course.teacher_signature.save(f'teacher_sig_{course.id}.png', data, save=False)
+                # Invalidate generated PDFs to force regeneration with new signature
+                from student.models import Certificate
+                for cert in Certificate.objects.filter(course=course):
+                    if cert.certificate_file:
+                        cert.certificate_file.delete(save=False)
+                    cert.certificate_file = None
+                    cert.save(update_fields=['certificate_file'])
+
         course.save()
         _write_audit_log(request.user, 'Course Edit', f'Updated course "{course.title}"')
         return redirect('teacher:course_list')
