@@ -63,4 +63,59 @@
         <div class="auth-footer">Don't have an account? <a href="{% url 'signup' %}">Create Account</a></div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    passwordInputs.forEach(function(input) {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'block';
+        
+        // Wrap the input securely
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+        
+        // Make room for the toggle icon
+        input.style.paddingRight = '45px';
+        
+        const iconBtn = document.createElement('button');
+        iconBtn.type = 'button';
+        iconBtn.innerHTML = '👁️';
+        iconBtn.title = "Show Password";
+        iconBtn.style.position = 'absolute';
+        iconBtn.style.right = '12px';
+        iconBtn.style.top = '50%';
+        iconBtn.style.transform = 'translateY(-50%)';
+        iconBtn.style.background = 'none';
+        iconBtn.style.border = 'none';
+        iconBtn.style.cursor = 'pointer';
+        iconBtn.style.fontSize = '1.1rem';
+        iconBtn.style.opacity = '0.5';
+        iconBtn.style.padding = '0';
+        iconBtn.style.outline = 'none';
+        iconBtn.style.transition = '0.2s';
+        
+        iconBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconBtn.innerHTML = '🙈';
+                iconBtn.title = "Hide Password";
+                iconBtn.style.opacity = '0.9';
+            } else {
+                input.type = 'password';
+                iconBtn.innerHTML = '👁️';
+                iconBtn.title = "Show Password";
+                iconBtn.style.opacity = '0.5';
+            }
+        });
+        
+        iconBtn.addEventListener('mouseenter', () => { iconBtn.style.opacity = '0.9'; });
+        iconBtn.addEventListener('mouseleave', () => { if(input.type === 'password') iconBtn.style.opacity = '0.5'; });
+        
+        wrapper.appendChild(iconBtn);
+    });
+});
+</script>
 {% endblock %}
