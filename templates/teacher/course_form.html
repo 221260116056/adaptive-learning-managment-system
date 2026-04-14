@@ -124,7 +124,6 @@
                     <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">
                         {% if course %}Edit Existing Course{% else %}Create New Course{% endif %}
                     </h1>
-                    <p style="color: #64748b;">This course will be automatically synced with Moodle</p>
                 </div>
 
                 <form method="post" enctype="multipart/form-data">
@@ -211,7 +210,7 @@
                     </label>
 
                     <button type="submit" class="btn-submit">
-                        {% if course %}Update & Synchronize{% else %}Create & Sync to Moodle{% endif %}
+                        Save
                     </button>
 
                     <a href="{% url 'teacher:dashboard' %}"
