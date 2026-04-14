@@ -5,6 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from .decorators import teacher_required
 from student.models import Course, CourseCertificateTemplate, Enrollment, QuizAttempt, Module, StudentProfile, WatchEvent, Certificate, Notification, AssignmentSubmission, Quiz, Question, ModuleProgress
@@ -884,6 +885,16 @@ def review_submission_api(request, submission_id):
             submission.reviewed_at = timezone.now()
             submission.save()
             
+            # Create chat message if feedback exists
+            if feedback.strip():
+                from student.models import SubmissionMessage
+                SubmissionMessage.objects.create(
+                    submission=submission,
+                    user=request.user,
+                    text=feedback,
+                    is_teacher=True
+                )
+            
             # Create notification for student
             Notification.objects.get_or_create(
                 user=submission.student,
@@ -907,3 +918,38 @@ def review_submission_api(request, submission_id):
         
         return redirect('teacher:review_assignments')
     return HttpResponseForbidden("Invalid method")
+
+@teacher_required
+@csrf_exempt
+def teacher_send_message_api(request, submission_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            message_text = data.get('message', '').strip()
+            
+            if not message_text:
+                return JsonResponse({'status': 'error', 'message': 'Message cannot be empty'}, status=400)
+                
+            submission = get_object_or_404(AssignmentSubmission, id=submission_id, module__course__teacher=request.user)
+            
+            # Create chat message
+            from student.models import SubmissionMessage
+            SubmissionMessage.objects.create(
+                submission=submission,
+                user=request.user,
+                text=message_text,
+                is_teacher=True
+            )
+            
+            # Notify student
+            from student.models import Notification
+            Notification.objects.get_or_create(
+                user=submission.student,
+                message=f"Instructor {request.user.username} sent a message regarding {submission.module.title}.",
+                link=reverse('video_player', args=[submission.module.id])
+            )
+            
+            return JsonResponse({'status': 'success', 'message': 'Message sent successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)

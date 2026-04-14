@@ -36,4 +36,5 @@ urlpatterns = [
     # Assignment review
     path('assignments/review/', views.review_assignments, name='review_assignments'),
     path('assignments/review/<int:submission_id>/', views.review_submission_api, name='review_submission_api'),
+    path('assignments/review/<int:submission_id>/send-message/', views.teacher_send_message_api, name='teacher_send_message_api'),
 ]

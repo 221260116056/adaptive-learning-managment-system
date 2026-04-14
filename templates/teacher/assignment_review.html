@@ -134,6 +134,100 @@
         border-radius: 20px;
         border: 2px dashed #e2e8f0;
     }
+
+    /* Teacher Chat View */
+    .chat-history-wrapper {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: #f1f5f9;
+        border-radius: 16px;
+    }
+    .chat-msg {
+        max-width: 85%;
+        padding: 0.65rem 0.9rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    .chat-msg-teacher {
+        align-self: flex-start;
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 2px;
+    }
+    .chat-msg-student {
+        align-self: flex-end;
+        background: #4f46e5;
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+    .msg-time {
+        font-size: 0.65rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Additional Teacher Chat UI Styles */
+    .chat-history-wrapper {
+        max-height: 350px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+    .btn-clear-history {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #94a3b8;
+        padding: 4px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .btn-clear-history:hover {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+    .teacher-chat-input-row {
+        display: flex;
+        gap: 0.75rem;
+        background: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        align-items: center;
+        margin-top: -0.5rem;
+        margin-bottom: 2rem;
+    }
+    .teacher-chat-textarea {
+        flex: 1;
+        border: none;
+        padding: 0.5rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+        resize: none;
+        outline: none;
+        min-height: 40px;
+    }
+    .btn-send-whatsapp {
+        background: #25d366;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-send-whatsapp:hover {
+        background: #128c7e;
+        transform: scale(1.05);
+    }
 </style>
 {% endblock %}
 
@@ -187,12 +281,42 @@
                     </div>
                 </div>
 
+                <!-- Message History (Chat Style) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; margin-top: 1.5rem;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin: 0;">Communication History</label>
+                    <button onclick="clearChat('{{ sub.id }}')" class="btn-clear-history" title="Clear Chat History">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </div>
+                
+                <div id="chatContainer-{{ sub.id }}" class="chat-history-wrapper">
+                    {% if sub.messages.all %}
+                        {% for msg in sub.messages.all %}
+                        <div class="chat-msg {% if msg.is_teacher %}chat-msg-teacher{% else %}chat-msg-student{% endif %}">
+                            <div style="word-break: break-word;">{{ msg.text|linebreaksbr }}</div>
+                            <div class="msg-time {% if msg.is_teacher %}text-slate-500{% else %}text-indigo-200{% endif %}" style="opacity: 0.7;">
+                                {{ msg.created_at|date:"M j, g:i a" }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; color: #94a3b8; padding: 1.5rem 0;">
+                            <p style="margin: 0; font-size: 0.85rem;">No messages yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Teacher Quick Reply & Status Actions -->
+                <div class="teacher-chat-input-row" style="margin-bottom: 1rem;">
+                    <textarea id="teacherMsg-{{ sub.id }}" class="teacher-chat-textarea" placeholder="Type a message..." rows="1"></textarea>
+                    <button onclick="teacherSendMessage('{{ sub.id }}')" class="btn-send-whatsapp">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+
                 <form method="post" action="{% url 'teacher:review_submission_api' sub.id %}" class="review-form">
                     {% csrf_token %}
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem;">Teacher Feedback</label>
-                    <textarea name="feedback" class="feedback-area" placeholder="Enter feedback for the student...">{{ sub.feedback|default:'' }}</textarea>
-                    
-                    <div class="action-btns">
+                    <div class="action-btns" style="margin-top: 0.5rem;">
                         <button type="submit" name="status" value="approved" class="btn-review btn-approve">
                             Approve Assignment
                         </button>
@@ -212,4 +336,89 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    async function teacherSendMessage(submissionId) {
+        const input = document.getElementById(`teacherMsg-${submissionId}`);
+        const message = input.value.trim();
+        const chatContainer = document.getElementById(`chatContainer-${submissionId}`);
+        
+        if (!message) return;
+        
+        try {
+            const response = await fetch(`/teacher/assignments/review/${submissionId}/send-message/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                // Instantly update UI
+                const now = new Date();
+                const timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
+                              now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                
+                const msgHtml = `
+                    <div class="chat-msg chat-msg-teacher">
+                        <div style="word-break: break-word;">${message.replace(/\n/g, '<br>')}</div>
+                        <div class="msg-time text-slate-500" style="opacity: 0.7;">${timeStr}</div>
+                    </div>
+                `;
+                
+                if (chatContainer.querySelector('p')) {
+                    chatContainer.innerHTML = msgHtml;
+                } else {
+                    chatContainer.innerHTML += msgHtml;
+                }
+                
+                input.value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    async function clearChat(submissionId) {
+        if (!confirm('Are you sure you want to clear the entire chat history for this submission? This cannot be undone.')) return;
+        
+        try {
+            const response = await fetch("{% url 'delete_assignment_chat_api' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ submission_id: submissionId })
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById(`chatContainer-${submissionId}`).innerHTML = `
+                    <div style="text-align: center; color: #94a3b8; padding: 1.5rem 0;">
+                        <p style="margin: 0; font-size: 0.85rem;">Chat history cleared.</p>
+                    </div>
+                `;
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Auto-scroll all chats to bottom on load
+    window.addEventListener('load', () => {
+        document.querySelectorAll('.chat-history-wrapper').forEach(box => {
+            box.scrollTop = box.scrollHeight;
+        });
+    });
+</script>
 {% endblock %}

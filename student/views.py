@@ -42,6 +42,7 @@ from .models import (
     StudentProfile,
     WatchEvent,
     AssignmentSubmission,
+    SubmissionMessage,
 )
 from .forms import CustomUserCreationForm
 from .utils import generate_qr_code
@@ -981,6 +982,7 @@ def video_player(request, module_id):
     )
     
     submission = AssignmentSubmission.objects.filter(student=request.user, module=module).first()
+    submission_messages = submission.messages.all() if submission else []
     
     # Fetch module details from Moodle
     print(f"DEBUG: Fetching module content")
@@ -1085,6 +1087,7 @@ def video_player(request, module_id):
         'min_watch_percent': module.video_details.min_watch_percent if hasattr(module, 'video_details') and module.video_details else 80,
         'dash_manifest': dash_manifest,
         'submission': submission,
+        'submission_messages': submission_messages,
     })
 
 
@@ -1381,3 +1384,67 @@ def delete_notification(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.delete()
     return redirect('notifications')
+
+@login_required
+@csrf_exempt
+def submit_assignment_reply_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            module_id = data.get('module_id')
+            reply_text = data.get('reply_text', '').strip()
+            
+            if not reply_text:
+                return JsonResponse({'status': 'error', 'message': 'Reply cannot be empty'}, status=400)
+                
+            module = get_object_or_404(Module, id=module_id, type='assignment')
+            submission = get_object_or_404(AssignmentSubmission, student=request.user, module=module)
+            
+            if not submission.feedback:
+                return JsonResponse({'status': 'error', 'message': 'You can only reply to teacher feedback'}, status=400)
+                
+            submission.student_reply = reply_text
+            submission.replied_at = timezone.now()
+            submission.save()
+            
+            # Create chat message
+            SubmissionMessage.objects.create(
+                submission=submission,
+                user=request.user,
+                text=reply_text,
+                is_teacher=False
+            )
+            
+            # Notify teacher
+            Notification.objects.get_or_create(
+                user=module.course.teacher,
+                message=f"Student {request.user.username} replied to assignment feedback: {module.title}.",
+                link=reverse('teacher:review_assignments')
+            )
+            
+            return JsonResponse({'status': 'success', 'message': 'Reply submitted successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+@login_required
+@csrf_exempt
+def delete_assignment_chat_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            submission_id = data.get('submission_id')
+            submission = get_object_or_404(AssignmentSubmission, id=submission_id)
+            
+            # Check permissions: Student or Teacher of the course
+            is_student = (submission.student == request.user)
+            is_teacher = (submission.module.course.teacher == request.user)
+            
+            if not is_student and not is_teacher:
+                return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+                
+            submission.messages.all().delete()
+            return JsonResponse({'status': 'success', 'message': 'Chat history cleared successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)

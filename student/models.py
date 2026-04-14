@@ -458,6 +458,8 @@ class AssignmentSubmission(models.Model):
     google_drive_link = models.URLField(max_length=500, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     feedback = models.TextField(blank=True, null=True)
+    student_reply = models.TextField(blank=True, null=True)
+    replied_at = models.DateTimeField(null=True, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
@@ -466,3 +468,16 @@ class AssignmentSubmission(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.module.title} ({self.status})"
+
+class SubmissionMessage(models.Model):
+    submission = models.ForeignKey(AssignmentSubmission, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    is_teacher = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{'Teacher' if self.is_teacher else 'Student'}: {self.text[:30]}"

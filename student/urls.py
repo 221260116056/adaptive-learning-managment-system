@@ -43,6 +43,8 @@ urlpatterns = [
     path('api/submit-quiz-question/', api_views.submit_quiz_question_api, name='submit_quiz_question_api'),
     path('api/submit-quiz/', api_views.submit_quiz_api, name='submit_quiz_api'),
     path('api/submit-assignment/', views.submit_assignment_api, name='submit_assignment_api'),
+    path('api/submit-assignment-reply/', views.submit_assignment_reply_api, name='submit_assignment_reply_api'),
+    path('api/clear-assignment-chat/', views.delete_assignment_chat_api, name='delete_assignment_chat_api'),
     path('video/heartbeat/', views.video_heartbeat, name='video_heartbeat'),
     path('video/replay/', views.video_replay, name='video_replay'),
 ]
