@@ -48,22 +48,24 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(15, 23, 42, 0.85) 80%);
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(15, 23, 42, 0.95) 90%);
         z-index: 20;
+        transition: opacity 0.4s ease;
+        opacity: 1; /* Visible by default */
     }
 
     .control-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(15, 23, 42, 0.6);
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.1);
         color: #ffffff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.2s ease, background 0.2s ease;
+        transition: all 0.2s ease;
     }
 
     .control-btn:hover {
@@ -116,20 +118,17 @@
         position: absolute;
         right: 12px;
         bottom: 58px;
-        background: rgba(17, 24, 39, 0.92);
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(17, 24, 39, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 12px;
-        padding: 0.4rem;
-        min-width: 240px;
-        display: none;
+        padding: 0.5rem;
+        min-width: 260px;
+        display: none; /* Managed directly via inline style */
         flex-direction: column;
         gap: 0.35rem;
-        backdrop-filter: blur(8px);
-        z-index: 25;
-    }
-
-    .settings-panel.show {
-        display: flex;
+        backdrop-filter: blur(12px);
+        z-index: 2000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
     .settings-row {
@@ -698,36 +697,297 @@
             </div>
             {% else %}
             {% if module.type == 'video' %}
-            <div class="video-container-diagnostic">
-                <video id="videoPlayer" controls style="width:100%; height:400px; background:black;">
+            <div class="video-container-diagnostic" id="customPlayerContainer" style="position: relative; border-radius: 12px; background: #000; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <video id="videoPlayer" style="width:100%; height: 100%; object-fit: contain; cursor: pointer; border-radius: 12px;">
                     {% if not module.dash_manifest and not is_hls and embed_url %}
                     <source src="{{ embed_url }}" type="video/mp4">
                     {% endif %}
                 </video>
 
-                {% if dash_manifest %}
+                <!-- Center Play/Pause Overlay (Optional, for better UX) -->
+                <div id="centerPlayBtn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21; color: white; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+
+                <!-- Custom Control Bar -->
+                <div class="video-controls" id="videoControls">
+                    <button id="playPauseBtn" class="control-btn" title="Play/Pause">
+                        <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+
+                    <div class="time-label" id="currentTime">0:00</div>
+
+                    <div class="progress-shell-inline">
+                        <input type="range" id="seekSlider" class="progress-range" min="0" max="100" value="0">
+                    </div>
+
+                    <div class="time-label" id="durationTime">0:00</div>
+
+                    <button id="volumeBtn" class="control-btn" title="Mute/Unmute">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+
+                    <button id="settingsBtn" class="control-btn" title="More Options" onclick="window.toggleSettingsMenu(event)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="pointer-events: none;">
+                            <circle cx="12" cy="12" r="1.5" fill="white"></circle>
+                            <circle cx="12" cy="5" r="1.5" fill="white"></circle>
+                            <circle cx="12" cy="19" r="1.5" fill="white"></circle>
+                        </svg>
+                    </button>
+
+                    <button id="fullscreenBtn" class="control-btn" title="Fullscreen">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Settings Panel -->
+                <div id="settingsPanel" class="settings-panel" style="right: 15px; bottom: 70px; z-index: 10000; border: 1px solid rgba(255,255,255,0.25); display: none;">
+                    <div id="mainSettings" style="display: flex; flex-direction: column;">
+                        {% if module.dash_manifest %}
+                        <div class="settings-row" id="qualityRow" onclick="showSubmenu('qualitySubmenu')">
+                            <div class="settings-left">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                                <span>Quality</span>
+                            </div>
+                            <span id="currentQuality" class="settings-value">Auto</span>
+                        </div>
+                        {% endif %}
+                        <div class="settings-row" onclick="showSubmenu('speedSubmenu')">
+                            <div class="settings-left">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span>Playback Speed</span>
+                            </div>
+                            <span id="currentSpeed" class="settings-value">Normal</span>
+                        </div>
+                        <div class="settings-row" onclick="togglePIP()">
+                            <div class="settings-left">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="13" y="13" width="5" height="5"></rect></svg>
+                                <span>Picture in Picture</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if module.dash_manifest %}
+                    <!-- Quality Submenu -->
+                    <div id="qualitySubmenu" class="submenu">
+                        <div class="submenu-header">
+                            <button class="submenu-back" onclick="showSubmenu('mainSettings')">←</button>
+                            <span>Quality</span>
+                        </div>
+                        <div id="qualityList" style="display: flex; flex-direction: column;">
+                            <button class="quality-option active" onclick="setQuality(-1)">Auto</button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Speed Submenu -->
+                    <div id="speedSubmenu" class="submenu">
+                        <div class="submenu-header">
+                            <button class="submenu-back" onclick="showSubmenu('mainSettings')">←</button>
+                            <span>Playback Speed</span>
+                        </div>
+                        <div class="speed-list" style="display: flex; flex-direction: column;">
+                            <button class="quality-option" onclick="setSpeed(0.5)">0.5x</button>
+                            <button class="quality-option" onclick="setSpeed(0.75)">0.75x</button>
+                            <button class="quality-option active" onclick="setSpeed(1)">Normal</button>
+                            <button class="quality-option" onclick="setSpeed(1.25)">1.25x</button>
+                            <button class="quality-option" onclick="setSpeed(1.5)">1.5x</button>
+                            <button class="quality-option" onclick="setSpeed(2)">2x</button>
+                        </div>
+                    </div>
+                </div>
+
                 <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
                 <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const video = document.getElementById("videoPlayer");
-                        const mpdUrl = "/media/{{ module.dash_manifest }}";
-                        const player = dashjs.MediaPlayer().create();
+                        const controls = document.getElementById("videoControls");
+                        const container = document.getElementById("customPlayerContainer");
+                        const playPauseBtn = document.getElementById("playPauseBtn");
+                        const playIcon = document.getElementById("playIcon");
+                        const pauseIcon = document.getElementById("pauseIcon");
+                        const seekSlider = document.getElementById("seekSlider");
+                        const currentTimeLabel = document.getElementById("currentTime");
+                        const durationTimeLabel = document.getElementById("durationTime");
+                        const volumeBtn = document.getElementById("volumeBtn");
+                        const fullscreenBtn = document.getElementById("fullscreenBtn");
+                        const settingsPanel = document.getElementById('settingsPanel');
+                        const settingsBtn = document.getElementById('settingsBtn');
 
-                        player.updateSettings({
-                            debug: { logLevel: dashjs.Debug.LOG_LEVEL_DEBUG },
-                            streaming: {
-                                abr: { autoSwitchBitrate: { video: true } }
+                        // --- Initialization ---
+                        const rawMpdUrl = "{{ module.dash_manifest|default:'' }}";
+                        let mpdUrl = rawMpdUrl ? (rawMpdUrl + "?t=" + new Date().getTime()) : "";
+                        let player = null;
+                        
+                        try {
+                            if (typeof dashjs !== 'undefined') {
+                                player = dashjs.MediaPlayer().create();
+                                window.dashPlayer = player;
+                                player.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: true } } } });
+                                // Initialization happens later after event binding
+                            }
+                        } catch (e) {
+                            console.error("DASH Initialization Error:", e);
+                        }
+
+                        // --- Core Control Events ---
+                        const togglePlay = () => video.paused ? video.play() : video.pause();
+                        playPauseBtn.onclick = (e) => { e.stopPropagation(); togglePlay(); };
+                        video.onclick = togglePlay;
+                        video.onplay = () => { playIcon.style.display = "none"; pauseIcon.style.display = "block"; };
+                        video.onpause = () => { playIcon.style.display = "block"; pauseIcon.style.display = "none"; };
+
+                        // --- Seeking ---
+                        const formatTime = (s) => {
+                            if (isNaN(s)) return "0:00";
+                            const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+                            return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}` : `${m}:${sec.toString().padStart(2,'0')}`;
+                        };
+                        video.onloadedmetadata = () => durationTimeLabel.textContent = formatTime(video.duration);
+                        video.ontimeupdate = () => {
+                            if (!seekSlider.dragging) {
+                                currentTimeLabel.textContent = formatTime(video.currentTime);
+                                seekSlider.value = (video.currentTime / video.duration) * 100 || 0;
+                            }
+                        };
+                        seekSlider.oninput = () => { seekSlider.dragging = true; currentTimeLabel.textContent = formatTime((seekSlider.value / 100) * video.duration); };
+                        seekSlider.onchange = () => { video.currentTime = (seekSlider.value / 100) * video.duration; seekSlider.dragging = false; };
+
+                        // --- Volume ---
+                        volumeBtn.onclick = (e) => { e.stopPropagation(); video.muted = !video.muted; volumeBtn.style.opacity = video.muted ? "0.5" : "1"; };
+
+                        // --- Fullscreen ---
+                        fullscreenBtn.onclick = (e) => { e.stopPropagation(); if (!document.fullscreenElement) container.requestFullscreen(); else document.exitFullscreen(); };
+
+                        // --- Global Action Handlers ---
+                        window.toggleSettingsMenu = function(e) {
+                            if (e) { e.preventDefault(); e.stopPropagation(); }
+                            const panel = document.getElementById('settingsPanel');
+                            if (panel) {
+                                if (panel.style.display === 'flex' || panel.style.display === 'block') {
+                                    panel.style.display = 'none';
+                                    if (typeof window.showSubmenu === 'function') window.showSubmenu('mainSettings');
+                                } else {
+                                    panel.style.display = 'flex';
+                                }
+                            }
+                        };
+                        
+                        document.addEventListener('click', (e) => {
+                            const panel = document.getElementById('settingsPanel');
+                            const btn = document.getElementById('settingsBtn');
+                            if (panel && (panel.style.display === 'flex' || panel.style.display === 'block')) {
+                                if (!panel.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                                    panel.style.display = 'none';
+                                    if (typeof window.showSubmenu === 'function') window.showSubmenu('mainSettings');
+                                }
                             }
                         });
 
-                        player.initialize(video, mpdUrl, true);
+                        // --- Auto Hide UI ---
+                        let timer;
+                        const showUI = () => {
+                            controls.style.opacity = "1";
+                            clearTimeout(timer);
+                            if (!video.paused) timer = setTimeout(() => {
+                                if (settingsPanel && settingsPanel.style.display !== 'flex') controls.style.opacity = "0";
+                            }, 3000);
+                        };
+                        container.onmousemove = showUI;
+                        container.onclick = showUI;
 
-                        player.on("error", function (e) {
-                            console.error("DASH ERROR:", e);
-                        });
+                        // --- Settings Submenu Logic ---
+                        window.showSubmenu = (id) => {
+                            ['mainSettings', 'qualitySubmenu', 'speedSubmenu'].forEach(s => {
+                                let el = document.getElementById(s);
+                                if (el) el.style.display = (s === id) ? 'flex' : 'none';
+                            });
+                        };
+
+                        window.setQuality = (idx) => {
+                            if (!window.dashPlayer) return;
+                            if (idx === -1) {
+                                window.dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: true } } } });
+                                document.getElementById('currentQuality').textContent = 'Auto';
+                            } else {
+                                window.dashPlayer.updateSettings({ streaming: { abr: { autoSwitchBitrate: { video: false } } } });
+                                window.dashPlayer.setQualityFor('video', idx);
+                                const bitrates = window.dashPlayer.getBitrateInfoListFor('video');
+                                document.getElementById('currentQuality').textContent = bitrates[idx] ? bitrates[idx].height + 'p' : 'Auto';
+                            }
+                            // Update selection UI (Checkmarks and highlights)
+                            document.querySelectorAll('#qualitySubmenu .quality-option').forEach(opt => {
+                                const isMatch = parseInt(opt.getAttribute('data-quality-index')) === idx;
+                                opt.classList.toggle('active', isMatch);
+                                const checkIcon = opt.querySelector('span:first-child');
+                                if (checkIcon && checkIcon.textContent === '✓') {
+                                    checkIcon.style.visibility = isMatch ? 'visible' : 'hidden';
+                                }
+                            });
+                            const panel = document.getElementById('settingsPanel');
+                            if(panel) panel.style.display = 'none';
+                        };
+
+                        window.setSpeed = (r) => {
+                            video.playbackRate = r;
+                            document.getElementById('currentSpeed').textContent = r === 1 ? 'Normal' : r + 'x';
+                            document.querySelectorAll('#speedSubmenu .quality-option').forEach(opt => {
+                                let val = opt.textContent === 'Normal' ? 1 : parseFloat(opt.textContent);
+                                opt.classList.toggle('active', val === r);
+                            });
+                            settingsPanel.style.display = 'none';
+                        };
+
+                        window.togglePIP = async () => {
+                            try { if (video !== document.pictureInPictureElement) await video.requestPictureInPicture(); else await document.exitPictureInPicture(); } catch(e) {}
+                            settingsPanel.style.display = 'none';
+                        };
+
+                        // Populate Qualities on Stream Init
+                        let hasPopulated = false;
+                        const populate = () => {
+                            if (!player || hasPopulated) return;
+                            const list = document.getElementById('qualityList');
+                            if (!list) return;
+                            try {
+                                const bitrates = player.getBitrateInfoListFor('video');
+                                if (!bitrates || bitrates.length === 0) return;
+
+                                list.innerHTML = '<button class="quality-option active" data-quality-index="-1" onclick="window.setQuality(-1)"><span style="font-size:1.2rem; margin-right:8px;">✓</span> Auto</button>';
+                                [...bitrates].map((b, i) => ({...b, i})).sort((a,b) => b.height - a.height).forEach(b => {
+                                    const btn = document.createElement('button');
+                                    btn.className = 'quality-option';
+                                    btn.setAttribute('data-quality-index', b.i);
+                                    btn.innerHTML = `<span class="check-icon" style="font-size:1.2rem; margin-right:8px; visibility:hidden;">✓</span><span>${b.height}p</span> ${b.height >= 720 ? '<span style="font-size:0.6rem; background:rgba(255,255,255,0.2); padding:1px 4px; border-radius:3px; margin-left:auto;">HD</span>' : ''}`;
+                                    btn.onclick = () => window.setQuality(b.i);
+                                    list.appendChild(btn);
+                                });
+                                hasPopulated = true;
+                            } catch (e) { console.error("Error populating quality:", e); }
+                        };
+                        
+                        if (player) {
+                            player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, populate);
+                            player.on(dashjs.MediaPlayer.events.CAN_PLAY, populate);
+
+                            // Trigger initialize only AFTER event bindings
+                            if (mpdUrl && mpdUrl !== "" && mpdUrl !== "None") {
+                                player.initialize(video, "/media/" + mpdUrl, true);
+                            }
+
+                            // Bulletproof fallback: manually poll for bitrates in case events fired too fast
+                            let attempts = 0;
+                            const pollBitrates = setInterval(() => {
+                                if (hasPopulated || attempts++ > 40) {
+                                    clearInterval(pollBitrates);
+                                    return;
+                                }
+                                populate();
+                            }, 250);
+                        }
                     });
                 </script>
-                {% endif %}
 
                 {% if is_hls %}
                 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
