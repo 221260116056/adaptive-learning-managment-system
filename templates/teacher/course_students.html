@@ -90,6 +90,11 @@
         font-weight: 700;
         color: var(--primary);
     }
+
+    .progress-fill-success {
+        height: 100%;
+        background: var(--success);
+    }
 </style>
 {% endblock %}
 
@@ -129,7 +134,7 @@
                             <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
                             <td>
                                 <div style="width: 100px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
-                                    <div style="width: {{ enrollment.progress_percent }}%; height: 100%; background: var(--success);"></div>
+                                    <div class="progress-fill-success" data-progress="{{ enrollment.progress_percent }}"></div>
                                 </div>
                                 <span style="font-size: 0.75rem; color: #64748b;">{{ enrollment.progress_percent }}% Completed</span>
                             </td>
@@ -152,6 +157,14 @@
         </footer>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("[data-progress]").forEach(function(el) {
+            el.style.width = el.getAttribute("data-progress") + "%";
+        });
+    });
+</script>
 {% endblock %}
 
 {% block footer %}{% endblock %}

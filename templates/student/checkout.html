@@ -264,7 +264,7 @@
         const paymentForm = document.getElementById('paymentForm');
         const payButton = document.getElementById('payButton');
         const errorsDiv = document.getElementById('errors');
-        const totalAmount = {{ amount_paise }}; 
+        const totalAmount = parseInt("{{ amount_paise }}", 10); 
 
         paymentForm.addEventListener('submit', function(e) {
             const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked');
