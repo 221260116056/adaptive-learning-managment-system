@@ -435,7 +435,7 @@ def course_modules(request, course_id):
         'active_menu': 'course_modules'
     })
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 
 @teacher_required
 def reorder_modules(request, course_id):
