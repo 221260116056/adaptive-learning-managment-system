@@ -898,6 +898,21 @@ def submit_assignment_api(request):
                 }
             )
             
+            # Mark module as completed upon submission
+            progress, _ = ModuleProgress.objects.get_or_create(user=request.user, module=module)
+            progress.is_completed = True
+            progress.save()
+            
+            legacy_progress, _ = StudentProgress.objects.get_or_create(
+                student=request.user,
+                course=module.course,
+                module=module,
+            )
+            legacy_progress.theory_completed = True
+            legacy_progress.is_completed = True
+            legacy_progress.completed_at = legacy_progress.completed_at or timezone.now()
+            legacy_progress.save()
+            
             _write_audit_log(request.user, 'Assignment Submission', f"Submitted assignment for '{module.title}'")
             
             return JsonResponse({
@@ -930,7 +945,7 @@ def player_course_view(request, course_id):
         messages.warning(request, 'This course has no learning modules yet, so it has been hidden from your learning list.')
         return redirect('my_courses')
         
-    return redirect('video_player', module_id=first_module.id)
+    return redirect('resume_course', course_id=course.id)
 
 
 
@@ -1007,11 +1022,13 @@ def video_player(request, module_id):
             dash_manifest = ""
 
     if module.type == 'video':
-        if module.video_file:
+        if dash_manifest:
+            # Use DASH manifest via secure streaming endpoint
+            manifest_filename = os.path.basename(dash_manifest)
+            embed_url = reverse('stream_dash_video', args=[module.id, manifest_filename])
+        elif module.video_file:
+            # Fallback to raw video if DASH isn't available
             embed_url = module.video_file.url
-        elif dash_manifest:
-            # Use DASH manifest
-            embed_url = f"/media/{dash_manifest}"
 
     # Only support local HLS if manifest ends with .m3u8 (legacy) or DASH manifest exists
     if embed_url and embed_url.lower().endswith('.m3u8'):
@@ -1058,7 +1075,7 @@ def video_player(request, module_id):
     quiz = _ensure_module_quiz(module)
     next_module = Module.objects.filter(course=module.course, order__gt=module.order).order_by('order').first()
              
-    return render(request, 'student/video_player.html', {
+    response = render(request, 'student/video_player.html', {
         'module': module,
         'all_modules': all_modules,
         'last_sequence_number': last_sequence_number,
@@ -1079,16 +1096,32 @@ def video_player(request, module_id):
         'total_modules_count': total_modules,
         'quiz_payload': _quiz_payload(quiz, request.user),
         'next_module_url': reverse('video_player', kwargs={'module_id': next_module.id}) if next_module else reverse('dashboard'),
-        'allow_seek': True,  # Default for new model
+        'allow_seek': False,  # Default disabled for anti-cheat
         'disable_fast_forward': module.video_details.disable_fast_forward if hasattr(module, 'video_details') and module.video_details else True,
         'enable_checkpoints': module.video_details.enable_checkpoints if hasattr(module, 'video_details') and module.video_details else False,
-        'checkpoint_interval': module.video_details.checkpoint_interval if hasattr(module, 'video_details') and module.video_details else 30,
         'checkpoint_interval': module.video_details.checkpoint_interval if hasattr(module, 'video_details') and module.video_details else 30,
         'min_watch_percent': module.video_details.min_watch_percent if hasattr(module, 'video_details') and module.video_details else 80,
         'dash_manifest': dash_manifest,
         'submission': submission,
         'submission_messages': submission_messages,
+        'last_watched_time': module_progress.last_watched_time if module_progress else 0,
     })
+    
+    # --- Advanced Secure Streaming Token Generation ---
+    platform_setting = PlatformSetting.objects.first()
+    secret = platform_setting.signed_url_secret if platform_setting else settings.SECRET_KEY
+    if not secret:
+        secret = settings.SECRET_KEY
+        
+    from .utils_video import generate_secure_token
+    token_ttl = platform_setting.token_ttl_seconds if platform_setting and getattr(platform_setting, 'token_ttl_seconds', 0) else 7200
+    token_ttl = max(token_ttl, 7200) # Ensure at least 2 hours for long videos
+    
+    token_payload = generate_secure_token(request.user.id, module.id, secret, expiry_seconds=token_ttl)
+    
+    response.set_cookie(f'stream_token_{module.id}', token_payload, httponly=True, samesite='Strict')
+    
+    return response
 
 
 @login_required
@@ -1103,6 +1136,22 @@ def stream_dash_video(request, module_id, filename):
     if not is_enrolled and not is_teacher and not request.user.is_superuser:
         return HttpResponseForbidden("Access denied")
 
+    # --- Advanced Secure Streaming Verification ---
+    platform_setting = PlatformSetting.objects.first()
+    secret = platform_setting.signed_url_secret if platform_setting else settings.SECRET_KEY
+    if not secret:
+        secret = settings.SECRET_KEY
+        
+    # Check token from query param (fallback) or cookie
+    token_payload = request.GET.get('token') or request.COOKIES.get(f'stream_token_{module.id}')
+    
+    from .utils_video import verify_secure_token
+    is_valid, error_msg = verify_secure_token(token_payload, request.user.id, module.id, secret)
+    
+    if not is_valid:
+        return HttpResponseForbidden(f"Access Denied: {error_msg}")
+    # ---------------------------------------------
+
     dash_dir = os.path.join(settings.MEDIA_ROOT, f"videos/dash/module_{module_id}")
     file_path = os.path.join(dash_dir, filename)
 
@@ -1112,16 +1161,44 @@ def stream_dash_video(request, module_id, filename):
     if not os.path.exists(file_path):
         raise Http404("DASH segment not found")
         
-    response = FileResponse(open(file_path, 'rb'))
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Cache-Control'] = 'no-cache'
-
     if filename.endswith('.mpd'):
-        response['Content-Type'] = 'application/dash+xml'
-    elif filename.endswith('.m4s') or filename.endswith('.mp4'):
-        response['Content-Type'] = 'video/mp4'
+        import re
+        with open(file_path, 'r', encoding='utf-8') as f:
+            manifest_content = f.read()
 
-    return response
+        # Dynamically rewrite relative paths to absolute paths with the secure token
+        manifest_url = reverse('stream_dash_video', args=[module_id, 'manifest.mpd'])
+        base_url = manifest_url.rsplit('/', 1)[0] + '/'
+        
+        def rewrite_attr(match):
+            attr_name = match.group(1)
+            attr_val = match.group(2)
+            # Avoid rewriting if it's already an absolute URL
+            if attr_val.startswith('http') or attr_val.startswith('/'):
+                return match.group(0)
+            
+            absolute_val = f"{base_url}{attr_val}?token={token_payload}"
+            return f'{attr_name}="{absolute_val}"'
+
+        # Target attributes commonly used in DASH manifests for segments and init files
+        manifest_content = re.sub(r'(media|initialization|sourceURL)="([^"]+\.m4s|[^"]+\.mp4)"', rewrite_attr, manifest_content)
+        
+        # Also handle BaseURL if it exists
+        manifest_content = re.sub(r'<BaseURL>([^<]+)</BaseURL>', lambda m: f'<BaseURL>{base_url}{m.group(1)}?token={token_payload}</BaseURL>' if not m.group(1).startswith('http') and not m.group(1).startswith('/') else m.group(0), manifest_content)
+
+        response = HttpResponse(manifest_content, content_type='application/dash+xml')
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Cache-Control'] = 'no-cache'
+        return response
+    else:
+        response = FileResponse(open(file_path, 'rb'))
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Cache-Control'] = 'no-cache'
+
+        if filename.endswith('.m4s') or filename.endswith('.mp4'):
+            response['Content-Type'] = 'video/mp4'
+
+        return response
 
 @student_required
 def explore_view(request):
@@ -1291,6 +1368,7 @@ def video_heartbeat(request):
 
             # Update progress
             progress.video_progress = max(progress.video_progress, percent)
+            progress.last_watched_time = seconds
             progress.save()
 
             # Removed _sync_completion_state since video progress waits for the user to explicitly call mark_complete_api
@@ -1448,3 +1526,71 @@ def delete_assignment_chat_api(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+
+@login_required
+def resume_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Ensure enrollment
+    if not Enrollment.objects.filter(student=request.user, course=course).exists() and not request.user.is_superuser:
+        return redirect('dashboard')
+        
+    modules = list(Module.objects.filter(course=course).order_by('order'))
+    if not modules:
+        return redirect('course_detail_public', course_id=course.id)
+        
+    # Find latest updated progress
+    latest_progress = ModuleProgress.objects.filter(
+        user=request.user,
+        module__course=course
+    ).order_by('-updated_at').first()
+    
+    def get_module_url(module):
+        if module.type == 'video':
+            return reverse('video_player', args=[module.id])
+        elif module.type == 'theory':
+            return reverse('theory_player', args=[module.id])
+        elif module.type == 'quiz':
+            return reverse('quiz_player', args=[module.id])
+        elif module.type == 'assignment':
+            return reverse('assignment_player', args=[module.id])
+        return reverse('video_player', args=[module.id])
+    
+    if not latest_progress:
+        from .models import StudentProgress
+        legacy_progs = StudentProgress.objects.filter(student=request.user, course=course).order_by('-updated_at')
+        if not legacy_progs.exists():
+            return redirect(get_module_url(modules[0]))
+        
+        latest_legacy = legacy_progs.first()
+        if not latest_legacy.is_completed:
+            return redirect(get_module_url(latest_legacy.module))
+            
+        for mod in modules:
+            lp = StudentProgress.objects.filter(student=request.user, module=mod).first()
+            if not lp or not lp.is_completed:
+                return redirect(get_module_url(mod))
+                
+        return redirect('course_detail_public', course_id=course.id)
+        
+    if not latest_progress.is_completed:
+        return redirect(get_module_url(latest_progress.module))
+        
+    # If latest is completed, find next incomplete
+    from .models import StudentProgress
+    for mod in modules:
+        prog = ModuleProgress.objects.filter(user=request.user, module=mod).first()
+        lp = StudentProgress.objects.filter(student=request.user, module=mod).first()
+        
+        is_mod_completed = False
+        if prog and prog.is_completed:
+            is_mod_completed = True
+        elif lp and lp.is_completed:
+            is_mod_completed = True
+            
+        if not is_mod_completed:
+            return redirect(get_module_url(mod))
+            
+    # All modules are completed
+    return redirect('course_detail_public', course_id=course.id)

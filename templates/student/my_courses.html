@@ -190,7 +190,7 @@
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fill-green" data-progress="{{ card.progress_percent }}"></div>
                     </div>
-                    <a href="{% if card.first_module %}{% url 'video_player' card.first_module.id %}{% else %}#{% endif %}" class="btn-action btn-blue">
+                    <a href="{% url 'resume_course' card.enrollment.course.id %}" class="btn-action btn-blue">
                         Review Course
                     </a>
                     {% else %}
@@ -201,7 +201,7 @@
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fill-blue" data-progress="{{ card.progress_percent }}"></div>
                     </div>
-                    <a href="{% if card.first_module %}{% url 'video_player' card.first_module.id %}{% else %}#{% endif %}"
+                    <a href="{% url 'resume_course' card.enrollment.course.id %}"
                         class="btn-action btn-blue">Continue</a>
                     {% endif %}
                 </div>

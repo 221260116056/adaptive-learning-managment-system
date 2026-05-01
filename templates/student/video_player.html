@@ -51,7 +51,8 @@
         background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(15, 23, 42, 0.95) 90%);
         z-index: 20;
         transition: opacity 0.4s ease;
-        opacity: 1; /* Visible by default */
+        opacity: 1;
+        /* Visible by default */
     }
 
     .control-btn {
@@ -123,12 +124,13 @@
         border-radius: 12px;
         padding: 0.5rem;
         min-width: 260px;
-        display: none; /* Managed directly via inline style */
+        display: none;
+        /* Managed directly via inline style */
         flex-direction: column;
         gap: 0.35rem;
         backdrop-filter: blur(12px);
         z-index: 2000;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
 
     .settings-row {
@@ -566,6 +568,7 @@
         margin-bottom: 1.5rem;
         scroll-behavior: smooth;
     }
+
     .message-bubble {
         max-width: 80%;
         padding: 0.75rem 1rem;
@@ -573,14 +576,16 @@
         font-size: 0.92rem;
         line-height: 1.5;
         position: relative;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
+
     .message-student {
         align-self: flex-end;
         background: #4f46e5;
         color: white;
         border-bottom-right-radius: 4px;
     }
+
     .message-teacher {
         align-self: flex-start;
         background: white;
@@ -588,13 +593,20 @@
         border: 1px solid #e2e8f0;
         border-bottom-left-radius: 4px;
     }
+
     .message-time {
         font-size: 0.7rem;
         margin-top: 0.35rem;
         text-align: right;
     }
-    .message-teacher .message-time { color: #64748b; }
-    .message-student .message-time { color: #c7d2fe; }
+
+    .message-teacher .message-time {
+        color: #64748b;
+    }
+
+    .message-student .message-time {
+        color: #c7d2fe;
+    }
 
     .chat-input-group {
         display: flex;
@@ -604,6 +616,7 @@
         border-radius: 12px;
         border: 1px solid #e2e8f0;
     }
+
     .chat-textarea {
         flex: 1;
         border: none;
@@ -627,6 +640,7 @@
         align-items: center;
         justify-content: center;
     }
+
     .btn-clear-chat:hover {
         background: #fee2e2;
         color: #ef4444;
@@ -644,12 +658,14 @@
         justify-content: center;
         cursor: pointer;
         transition: transform 0.2s, background 0.2s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
     .btn-send-whatsapp:hover {
         background: #128c7e;
         transform: scale(1.05);
     }
+
     .btn-send-whatsapp:active {
         transform: scale(0.95);
     }
@@ -659,13 +675,11 @@
 {% block content %}
 <div id="playerConfig" data-module-id="{{ module.id }}" data-update-progress-url="{% url 'update_progress_api' %}"
     data-mark-complete-url="{% url 'mark_complete_api' module.id %}" data-submit-quiz-url="{% url 'submit_quiz_api' %}"
-    data-submit-quiz-question-url="{% url 'submit_quiz_question_api' %}"
-    data-next-module-url="{{ next_module_url }}" data-csrf-token="{{ csrf_token }}"
-    data-is-locked="{{ is_locked|yesno:'true,false' }}"
- data-is-hls="{{ is_hls|yesno:'true,false' }}"
-    data-hls-src="{{ embed_url|default:'' }}" data-module-progress="{{ module_progress_percent }}"
-    data-course-progress="{{ course_progress_percent }}" data-completed-modules="{{ completed_modules_count }}"
-    data-total-modules="{{ total_modules_count }}"
+    data-submit-quiz-question-url="{% url 'submit_quiz_question_api' %}" data-next-module-url="{{ next_module_url }}"
+    data-csrf-token="{{ csrf_token }}" data-is-locked="{{ is_locked|yesno:'true,false' }}"
+    data-is-hls="{{ is_hls|yesno:'true,false' }}" data-hls-src="{{ embed_url|default:'' }}"
+    data-module-progress="{{ module_progress_percent }}" data-course-progress="{{ course_progress_percent }}"
+    data-completed-modules="{{ completed_modules_count }}" data-total-modules="{{ total_modules_count }}"
     data-quiz-required="{% if module.type == 'quiz' %}true{% else %}false{% endif %}"
     data-quiz-id="{{ quiz_payload.id|default:'' }}" data-attempts-remaining="{{ attempts_remaining }}"
     data-allow-seek="{{ allow_seek|yesno:'true,false' }}"
@@ -673,7 +687,8 @@
     data-min-watch-percent="{{ min_watch_percent }}"
     data-enable-checkpoints="{{ enable_checkpoints|yesno:'true,false' }}"
     data-checkpoint-interval="{{ checkpoint_interval }}" data-fallback-src="{{ embed_url|default:'' }}"
-    data-dash-manifest="{% if module.dash_manifest %}/media/{{ module.dash_manifest }}{% endif %}">
+    data-last-watched-time="{{ last_watched_time }}"
+    data-dash-manifest="{% if module.dash_manifest %}{{ embed_url }}{% endif %}">
 </div>
 
 {% if preview %}
@@ -688,32 +703,46 @@
     <div class="player-grid">
         <div class="viewport-column">
             {% if is_locked %}
-            <div class="video-card" style="display: flex; align-items: center; justify-content: center; background: #0f172a; padding: 3rem; min-height: 400px;">
+            <div class="video-card"
+                style="display: flex; align-items: center; justify-content: center; background: #0f172a; padding: 3rem; min-height: 400px;">
                 <div class="overlay-content" style="text-align: center; color: white;">
                     <h2>Content Locked</h2>
-                    <p style="margin-top: 1rem; color: #cbd5e1;">{{ lock_reason|default:"Please complete earlier modules first." }}</p>
-                    <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}" class="btn-action btn-primary" style="margin-top: 1.5rem; display: inline-block;">Return to Syllabus</a>
+                    <p style="margin-top: 1rem; color: #cbd5e1;">{{ lock_reason|default:"Please complete earlier modules
+                        first." }}</p>
+                    <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}"
+                        class="btn-action btn-primary" style="margin-top: 1.5rem; display: inline-block;">Return to
+                        Syllabus</a>
                 </div>
             </div>
             {% else %}
             {% if module.type == 'video' %}
-            <div class="video-container-diagnostic" id="customPlayerContainer" style="position: relative; border-radius: 12px; background: #000; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                <video id="videoPlayer" style="width:100%; height: 100%; object-fit: contain; cursor: pointer; border-radius: 12px;">
+            <div class="video-container-diagnostic" id="customPlayerContainer"
+                style="position: relative; border-radius: 12px; background: #000; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <video id="videoPlayer"
+                    style="width:100%; height: 100%; object-fit: contain; cursor: pointer; border-radius: 12px;">
                     {% if not module.dash_manifest and not is_hls and embed_url %}
                     <source src="{{ embed_url }}" type="video/mp4">
                     {% endif %}
                 </video>
 
                 <!-- Center Play/Pause Overlay (Optional, for better UX) -->
-                <div id="centerPlayBtn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21; color: white; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                <div id="centerPlayBtn"
+                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21; color: white; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="white">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
                 </div>
 
                 <!-- Custom Control Bar -->
                 <div class="video-controls" id="videoControls">
                     <button id="playPauseBtn" class="control-btn" title="Play/Pause">
-                        <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+                            style="display:none;">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                        </svg>
                     </button>
 
                     <div class="time-label" id="currentTime">0:00</div>
@@ -725,11 +754,17 @@
                     <div class="time-label" id="durationTime">0:00</div>
 
                     <button id="volumeBtn" class="control-btn" title="Mute/Unmute">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07">
+                            </path>
+                        </svg>
                     </button>
 
-                    <button id="settingsBtn" class="control-btn" title="More Options" onclick="window.toggleSettingsMenu(event)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" style="pointer-events: none;">
+                    <button id="settingsBtn" class="control-btn" title="More Options"
+                        onclick="window.toggleSettingsMenu(event)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
+                            style="pointer-events: none;">
                             <circle cx="12" cy="12" r="1.5" fill="white"></circle>
                             <circle cx="12" cy="5" r="1.5" fill="white"></circle>
                             <circle cx="12" cy="19" r="1.5" fill="white"></circle>
@@ -737,17 +772,26 @@
                     </button>
 
                     <button id="fullscreenBtn" class="control-btn" title="Fullscreen">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                            </path>
+                        </svg>
                     </button>
                 </div>
 
                 <!-- Settings Panel -->
-                <div id="settingsPanel" class="settings-panel" style="right: 15px; bottom: 70px; z-index: 10000; border: 1px solid rgba(255,255,255,0.25); display: none;">
+                <div id="settingsPanel" class="settings-panel"
+                    style="right: 15px; bottom: 70px; z-index: 10000; border: 1px solid rgba(255,255,255,0.25); display: none;">
                     <div id="mainSettings" style="display: flex; flex-direction: column;">
                         {% if module.dash_manifest %}
                         <div class="settings-row" id="qualityRow" onclick="showSubmenu('qualitySubmenu')">
                             <div class="settings-left">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                                </svg>
                                 <span>Quality</span>
                             </div>
                             <span id="currentQuality" class="settings-value">Auto</span>
@@ -755,14 +799,22 @@
                         {% endif %}
                         <div class="settings-row" onclick="showSubmenu('speedSubmenu')">
                             <div class="settings-left">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span>Playback Speed</span>
                             </div>
                             <span id="currentSpeed" class="settings-value">Normal</span>
                         </div>
                         <div class="settings-row" onclick="togglePIP()">
                             <div class="settings-left">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><rect x="13" y="13" width="5" height="5"></rect></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <rect x="13" y="13" width="5" height="5"></rect>
+                                </svg>
                                 <span>Picture in Picture</span>
                             </div>
                         </div>
@@ -816,10 +868,10 @@
                         const settingsBtn = document.getElementById('settingsBtn');
 
                         // --- Initialization ---
-                        const rawMpdUrl = "{{ module.dash_manifest|default:'' }}";
-                        let mpdUrl = rawMpdUrl ? (rawMpdUrl + "?t=" + new Date().getTime()) : "";
+                        const rawMpdUrl = "{{ embed_url|default:'' }}";
+                        let mpdUrl = rawMpdUrl ? (rawMpdUrl + (rawMpdUrl.includes('?') ? '&' : '?') + "t=" + new Date().getTime()) : "";
                         let player = null;
-                        
+
                         try {
                             if (typeof dashjs !== 'undefined') {
                                 player = dashjs.MediaPlayer().create();
@@ -838,21 +890,76 @@
                         video.onplay = () => { playIcon.style.display = "none"; pauseIcon.style.display = "block"; };
                         video.onpause = () => { playIcon.style.display = "block"; pauseIcon.style.display = "none"; };
 
-                        // --- Seeking ---
+                        // --- Seeking & Anti-Cheat ---
                         const formatTime = (s) => {
                             if (isNaN(s)) return "0:00";
                             const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
-                            return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}` : `${m}:${sec.toString().padStart(2,'0')}`;
+                            return h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}` : `${m}:${sec.toString().padStart(2, '0')}`;
                         };
-                        video.onloadedmetadata = () => durationTimeLabel.textContent = formatTime(video.duration);
+
+                        const playerConfigNode = document.getElementById("playerConfig");
+                        const allowSeek = playerConfigNode ? playerConfigNode.dataset.allowSeek === "true" : true;
+                        let maxWatchedTime = 0;
+                        const savedLastWatchedTime = Number(playerConfigNode?.dataset.lastWatchedTime || 0);
+                        let calculatedStartTime = savedLastWatchedTime;
+
+                        video.onloadedmetadata = () => {
+                            durationTimeLabel.textContent = formatTime(video.duration);
+                            const savedProgressPct = Number(playerConfigNode?.dataset.moduleProgress || 0);
+
+                            // Fallback for legacy progress that didn't save exact seconds
+                            if (calculatedStartTime === 0 && savedProgressPct > 0 && savedProgressPct < 100) {
+                                calculatedStartTime = (savedProgressPct / 100) * video.duration;
+                            }
+
+                            maxWatchedTime = Math.max((savedProgressPct / 100) * video.duration, calculatedStartTime);
+
+                            // Auto-resume logic for HTML5 player
+                            if (calculatedStartTime > 0 && video.currentTime < calculatedStartTime) {
+                                video.currentTime = calculatedStartTime;
+                            }
+                        };
+
                         video.ontimeupdate = () => {
                             if (!seekSlider.dragging) {
                                 currentTimeLabel.textContent = formatTime(video.currentTime);
                                 seekSlider.value = (video.currentTime / video.duration) * 100 || 0;
                             }
+                            // Track the furthest point watched natively
+                            if (!allowSeek && !seekSlider.dragging && video.currentTime > maxWatchedTime) {
+                                maxWatchedTime = video.currentTime;
+                            }
                         };
-                        seekSlider.oninput = () => { seekSlider.dragging = true; currentTimeLabel.textContent = formatTime((seekSlider.value / 100) * video.duration); };
-                        seekSlider.onchange = () => { video.currentTime = (seekSlider.value / 100) * video.duration; seekSlider.dragging = false; };
+
+                        // Intercept native seeking events (e.g., arrow keys)
+                        video.addEventListener('seeking', () => {
+                            if (!allowSeek && video.currentTime > maxWatchedTime + 1) { // 1 second buffer
+                                video.currentTime = maxWatchedTime;
+                            }
+                        });
+
+                        seekSlider.oninput = () => {
+                            let requestedTime = (seekSlider.value / 100) * video.duration;
+                            if (!allowSeek && requestedTime > maxWatchedTime) {
+                                requestedTime = maxWatchedTime;
+                                seekSlider.value = (maxWatchedTime / video.duration) * 100 || 0;
+                            }
+                            seekSlider.dragging = true;
+                            currentTimeLabel.textContent = formatTime(requestedTime);
+                        };
+
+                        seekSlider.onchange = () => {
+                            let requestedTime = (seekSlider.value / 100) * video.duration;
+
+                            // Prevent dragging the slider forward into unwatched territory
+                            if (!allowSeek && requestedTime > maxWatchedTime) {
+                                requestedTime = maxWatchedTime;
+                                seekSlider.value = (maxWatchedTime / video.duration) * 100 || 0; // Snap visual slider back
+                            }
+
+                            video.currentTime = requestedTime;
+                            seekSlider.dragging = false;
+                        };
 
                         // --- Volume ---
                         volumeBtn.onclick = (e) => { e.stopPropagation(); video.muted = !video.muted; volumeBtn.style.opacity = video.muted ? "0.5" : "1"; };
@@ -861,7 +968,7 @@
                         fullscreenBtn.onclick = (e) => { e.stopPropagation(); if (!document.fullscreenElement) container.requestFullscreen(); else document.exitFullscreen(); };
 
                         // --- Global Action Handlers ---
-                        window.toggleSettingsMenu = function(e) {
+                        window.toggleSettingsMenu = function (e) {
                             if (e) { e.preventDefault(); e.stopPropagation(); }
                             const panel = document.getElementById('settingsPanel');
                             if (panel) {
@@ -873,7 +980,7 @@
                                 }
                             }
                         };
-                        
+
                         document.addEventListener('click', (e) => {
                             const panel = document.getElementById('settingsPanel');
                             const btn = document.getElementById('settingsBtn');
@@ -926,7 +1033,7 @@
                                 }
                             });
                             const panel = document.getElementById('settingsPanel');
-                            if(panel) panel.style.display = 'none';
+                            if (panel) panel.style.display = 'none';
                         };
 
                         window.setSpeed = (r) => {
@@ -940,7 +1047,7 @@
                         };
 
                         window.togglePIP = async () => {
-                            try { if (video !== document.pictureInPictureElement) await video.requestPictureInPicture(); else await document.exitPictureInPicture(); } catch(e) {}
+                            try { if (video !== document.pictureInPictureElement) await video.requestPictureInPicture(); else await document.exitPictureInPicture(); } catch (e) { }
                             settingsPanel.style.display = 'none';
                         };
 
@@ -955,7 +1062,7 @@
                                 if (!bitrates || bitrates.length === 0) return;
 
                                 list.innerHTML = '<button class="quality-option active" data-quality-index="-1" onclick="window.setQuality(-1)"><span style="font-size:1.2rem; margin-right:8px;">✓</span> Auto</button>';
-                                [...bitrates].map((b, i) => ({...b, i})).sort((a,b) => b.height - a.height).forEach(b => {
+                                [...bitrates].map((b, i) => ({ ...b, i })).sort((a, b) => b.height - a.height).forEach(b => {
                                     const btn = document.createElement('button');
                                     btn.className = 'quality-option';
                                     btn.setAttribute('data-quality-index', b.i);
@@ -966,14 +1073,31 @@
                                 hasPopulated = true;
                             } catch (e) { console.error("Error populating quality:", e); }
                         };
-                        
+
                         if (player) {
                             player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, populate);
-                            player.on(dashjs.MediaPlayer.events.CAN_PLAY, populate);
+                            player.on(dashjs.MediaPlayer.events.CAN_PLAY, () => {
+                                populate();
+                                if (!window.hasAutoSeeked) {
+                                    window.hasAutoSeeked = true;
+
+                                    const savedProgressPct = Number(playerConfigNode?.dataset.moduleProgress || 0);
+                                    let seekTime = savedLastWatchedTime;
+
+                                    // Use Dash.js native duration to calculate time if needed
+                                    if (seekTime === 0 && savedProgressPct > 0 && savedProgressPct < 100) {
+                                        seekTime = (savedProgressPct / 100) * player.duration();
+                                    }
+
+                                    if (seekTime > 0) {
+                                        player.seek(seekTime);
+                                    }
+                                }
+                            });
 
                             // Trigger initialize only AFTER event bindings
                             if (mpdUrl && mpdUrl !== "" && mpdUrl !== "None") {
-                                player.initialize(video, "/media/" + mpdUrl, true);
+                                player.initialize(video, mpdUrl, true);
                             }
 
                             // Bulletproof fallback: manually poll for bitrates in case events fired too fast
@@ -1082,105 +1206,166 @@
             {% endif %}
 
             {% if module.type == 'assignment' %}
-            <section id="assignmentSection" style="background: white; border-radius: 16px; padding: 2.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+            <section id="assignmentSection"
+                style="background: white; border-radius: 16px; padding: 2.5rem; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
                     <div>
-                        <span class="theory-kicker" style="color: #6366f1; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Assignment Module</span>
-                        <h1 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; font-weight: 800;">{{ module.title|safe }}</h1>
+                        <span class="theory-kicker"
+                            style="color: #6366f1; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Assignment
+                            Module</span>
+                        <h1 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; font-weight: 800;">{{ module.title|safe
+                            }}</h1>
                         <p style="color: #64748b;">Complete the task and submit your work for review.</p>
                     </div>
                     {% if submission %}
-                        {% if submission.status == 'approved' %}
-                            <span style="background: #ecfdf5; color: #059669; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #10b981;">● Approved</span>
-                        {% elif submission.status == 'rejected' %}
-                            <span style="background: #fef2f2; color: #dc2626; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #f87171;">● Rejected</span>
-                        {% else %}
-                            <span style="background: #fffbeb; color: #d97706; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #fbbf24;">● Pending Review</span>
-                        {% endif %}
+                    {% if submission.status == 'approved' %}
+                    <span
+                        style="background: #ecfdf5; color: #059669; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #10b981;">●
+                        Approved</span>
+                    {% elif submission.status == 'rejected' %}
+                    <span
+                        style="background: #fef2f2; color: #dc2626; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #f87171;">●
+                        Rejected</span>
+                    {% else %}
+                    <span
+                        style="background: #fffbeb; color: #d97706; padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; font-size: 0.85rem; border: 1px solid #fbbf24;">●
+                        Pending Review</span>
+                    {% endif %}
                     {% endif %}
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 2.5rem;">
                     {% if module.assignment_task_file %}
-                    <a href="{{ module.assignment_task_file.url }}" target="_blank" class="btn-action btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <a href="{{ module.assignment_task_file.url }}" target="_blank" class="btn-action btn-primary"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
                         View Task PDF
                     </a>
                     {% endif %}
-                    
+
                     {% if submission and submission.feedback %}
-                    <button onclick="toggleFeedback()" class="btn-action btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fefce8; border: 1px solid #fef08a; color: #854d0e;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
+                    <button onclick="toggleFeedback()" class="btn-action btn-secondary"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fefce8; border: 1px solid #fef08a; color: #854d0e;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                        </svg>
                         View Feedback
                     </button>
                     {% endif %}
                 </div>
 
                 {% if not submission or submission.status != 'approved' %}
-                <div id="submissionForm" style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+                <div id="submissionForm"
+                    style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0;">
                     <h3 style="margin-top: 0; margin-bottom: 1.25rem; font-size: 1.1rem;">Submit Your Work</h3>
                     <div style="display: grid; gap: 1.25rem;">
                         <div class="form-group" style="margin: 0; display: block;">
-                            <label style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">GitHub Repository Link</label>
-                            <input type="url" id="githubLink" class="form-control" placeholder="https://github.com/username/repo" value="{{ submission.github_link|default:'' }}" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <label
+                                style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">GitHub
+                                Repository Link</label>
+                            <input type="url" id="githubLink" class="form-control"
+                                placeholder="https://github.com/username/repo"
+                                value="{{ submission.github_link|default:'' }}"
+                                style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
                         </div>
                         <div class="form-group" style="margin: 0; display: block;">
-                            <label style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">Google Drive Folder Link</label>
-                            <input type="url" id="googleDriveLink" class="form-control" placeholder="https://drive.google.com/..." value="{{ submission.google_drive_link|default:'' }}" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <label
+                                style="font-size: 0.9rem; margin-bottom: 0.4rem; display: block; font-weight: 600;">Google
+                                Drive Folder Link</label>
+                            <input type="url" id="googleDriveLink" class="form-control"
+                                placeholder="https://drive.google.com/..."
+                                value="{{ submission.google_drive_link|default:'' }}"
+                                style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1;">
                         </div>
                         <div style="margin-top: 0.5rem;">
-                            <button id="submitAssignmentBtn" onclick="submitAssignment()" class="btn-action btn-primary" style="width: 100%; justify-content: center; background: #4f46e5;">
+                            <button id="submitAssignmentBtn" onclick="submitAssignment()" class="btn-action btn-primary"
+                                style="width: 100%; justify-content: center; background: #4f46e5;">
                                 {% if submission %}Update Submission{% else %}Submit Assignment{% endif %}
                             </button>
                         </div>
                     </div>
                 </div>
                 {% else %}
-                <div style="background: #f0fdf4; border-radius: 12px; padding: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">✓</div>
+                <div
+                    style="background: #f0fdf4; border-radius: 12px; padding: 1.5rem; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        ✓</div>
                     <div>
                         <h4 style="margin: 0; color: #166534;">Assignment Approved</h4>
-                        <p style="margin: 0.2rem 0 0; color: #15803d; font-size: 0.9rem;">You have successfully completed this module.</p>
+                        <p style="margin: 0.2rem 0 0; color: #15803d; font-size: 0.9rem;">You have successfully
+                            completed this module.</p>
                     </div>
                 </div>
                 {% endif %}
 
                 <!-- Feedback Modal/Section (Chat Style) -->
-                <div id="feedbackSection" style="display: none; margin-top: 1.5rem; background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <h4 style="margin: 0; color: #1e293b; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <div id="feedbackSection"
+                    style="display: none; margin-top: 1.5rem; background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h4
+                            style="margin: 0; color: #1e293b; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
                             Communication History
                         </h4>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             {% if submission %}
                             <button onclick="clearChat()" class="btn-clear-chat" title="Clear Chat History">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                    </path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
                             </button>
                             {% endif %}
-                            <button onclick="toggleFeedback()" style="background: #f1f5f9; border: none; cursor: pointer; color: #64748b; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✕</button>
+                            <button onclick="toggleFeedback()"
+                                style="background: #f1f5f9; border: none; cursor: pointer; color: #64748b; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✕</button>
                         </div>
                     </div>
 
                     <div id="chatContainer" class="chat-container">
                         {% if submission_messages %}
-                            {% for msg in submission_messages %}
-                            <div class="message-bubble {% if msg.is_teacher %}message-teacher{% else %}message-student{% endif %}">
-                                <div style="word-break: break-word;">{{ msg.text|linebreaksbr }}</div>
-                                <div class="message-time">{{ msg.created_at|date:"M j, g:i a" }}</div>
-                            </div>
-                            {% endfor %}
+                        {% for msg in submission_messages %}
+                        <div
+                            class="message-bubble {% if msg.is_teacher %}message-teacher{% else %}message-student{% endif %}">
+                            <div style="word-break: break-word;">{{ msg.text|linebreaksbr }}</div>
+                            <div class="message-time">{{ msg.created_at|date:"M j, g:i a" }}</div>
+                        </div>
+                        {% endfor %}
                         {% else %}
-                            <div style="text-align: center; color: #94a3b8; padding: 2rem 0;">
-                                <p style="margin: 0; font-size: 0.9rem;">No messages yet. Submit your work to start the conversation.</p>
-                            </div>
+                        <div style="text-align: center; color: #94a3b8; padding: 2rem 0;">
+                            <p style="margin: 0; font-size: 0.9rem;">No messages yet. Submit your work to start the
+                                conversation.</p>
+                        </div>
                         {% endif %}
                     </div>
 
                     <div class="chat-input-group">
-                        <textarea id="studentReply" class="chat-textarea" placeholder="Type a message..." rows="1"></textarea>
+                        <textarea id="studentReply" class="chat-textarea" placeholder="Type a message..."
+                            rows="1"></textarea>
                         <button id="submitReplyBtn" onclick="submitReply()" class="btn-send-whatsapp">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -1202,8 +1387,10 @@
                         {% if module.type == 'video' %}
                         <div style="display: flex; flex-direction: column; align-items: flex-end;">
                             <button id="completeBtn" type="button" class="btn-action btn-primary"
-                                style="background: linear-gradient(135deg, #16a34a, #15803d); border-color: #16a34a;">Mark Complete &amp; Continue</button>
-                            <span id="watchRequirementIndicator" style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; display: none;"></span>
+                                style="background: linear-gradient(135deg, #16a34a, #15803d); border-color: #16a34a;">Mark
+                                Complete &amp; Continue</button>
+                            <span id="watchRequirementIndicator"
+                                style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; display: none;"></span>
                         </div>
                         {% elif module.type == 'quiz' %}
                         <button id="quizBtn" type="button" class="btn-action btn-primary" style="display: none;">Take
@@ -1211,7 +1398,9 @@
                         {% endif %}
                         {% endif %}
                     </div>
-                    <div id="playerStatus" style="display: none; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-weight: 500; font-size: 0.9rem;"></div>
+                    <div id="playerStatus"
+                        style="display: none; padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-weight: 500; font-size: 0.9rem;">
+                    </div>
                 </div>
 
                 <div class="progress-shell">
@@ -1269,7 +1458,8 @@
                             </path>
                         </svg>
                         {% elif m.type == 'assignment' %}
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
                             <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
@@ -1312,8 +1502,8 @@
 
         if (!replyText.trim()) return;
 
-        if (btn) { 
-            btn.disabled = true; 
+        if (btn) {
+            btn.disabled = true;
             btn.style.opacity = '0.5';
         }
 
@@ -1334,41 +1524,41 @@
             if (data.status === 'success') {
                 // Append new message bubble immediately for responsive feel
                 const now = new Date();
-                const timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
-                              now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                
+                const timeStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+                    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
                 const newMsg = `
                     <div class="message-bubble message-student">
                         <div style="word-break: break-word;">${replyText.replace(/\n/g, '<br>')}</div>
                         <div class="message-time">${timeStr}</div>
                     </div>
                 `;
-                
+
                 if (chatContainer.querySelector('p')) {
                     chatContainer.innerHTML = newMsg;
                 } else {
                     chatContainer.innerHTML += newMsg;
                 }
-                
+
                 document.getElementById('studentReply').value = '';
                 chatContainer.scrollTop = chatContainer.scrollHeight;
-                
-                if (btn) { 
-                    btn.disabled = false; 
+
+                if (btn) {
+                    btn.disabled = false;
                     btn.style.opacity = '1';
                 }
             } else {
                 alert(data.message);
-                if(btn) { 
-                    btn.disabled = false; 
+                if (btn) {
+                    btn.disabled = false;
                     btn.style.opacity = '1';
                 }
             }
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
-            if(btn) { 
-                btn.disabled = false; 
+            if (btn) {
+                btn.disabled = false;
                 btn.style.opacity = '1';
             }
         }
@@ -1376,7 +1566,7 @@
 
     async function clearChat() {
         if (!confirm('Are you sure you want to clear the entire chat history? This action cannot be undone.')) return;
-        
+
         try {
             const response = await fetch("{% url 'delete_assignment_chat_api' %}", {
                 method: 'POST',
@@ -1444,24 +1634,24 @@
 
             const data = await response.json();
             if (data.status === 'success') {
-                if(statusDiv) {
+                if (statusDiv) {
                     statusDiv.innerText = data.message;
                     statusDiv.className = 'playerStatus success';
                     statusDiv.style.display = 'block';
                 }
                 setTimeout(() => location.reload(), 2000);
             } else {
-                if(statusDiv) {
+                if (statusDiv) {
                     statusDiv.innerText = data.message;
                     statusDiv.className = 'playerStatus error';
                     statusDiv.style.display = 'block';
                 }
-                if(btn) { btn.disabled = false; btn.innerText = 'Try Again'; }
+                if (btn) { btn.disabled = false; btn.innerText = 'Try Again'; }
             }
         } catch (error) {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
-            if(btn) { btn.disabled = false; btn.innerText = 'Submit Assignment'; }
+            if (btn) { btn.disabled = false; btn.innerText = 'Submit Assignment'; }
         }
     }
 </script>

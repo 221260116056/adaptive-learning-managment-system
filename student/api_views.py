@@ -202,7 +202,7 @@ def update_progress_api(request):
     progress, _ = ModuleProgress.objects.get_or_create(user=request.user, module=module)
     if percent > progress.video_progress:
         progress.video_progress = percent
-    progress.last_watched_time = max(progress.last_watched_time, current_time)
+    progress.last_watched_time = current_time
     progress.save(update_fields=["video_progress", "last_watched_time", "updated_at"])
 
     legacy_progress, _ = StudentProgress.objects.get_or_create(
