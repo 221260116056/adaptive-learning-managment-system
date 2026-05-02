@@ -307,43 +307,45 @@
                             <input type="file" name="video_file" class="form-control" accept="video/mp4,video/webm,video/ogg,video/*" required>
                             <p class="help-text">Select an MP4, WebM, or OGG file. It will be professionally converted for high-quality streaming.</p>
                         </div>
-                        <div class="grid-row" style="margin-bottom: 1.5rem;">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>Min. Watch Percentage (%)</label>
-                                <input type="number" name="min_watch_percent" value="80" class="form-control" min="0" max="100">
+                        <div style="display: none;">
+                            <div class="grid-row" style="margin-bottom: 1.5rem;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Min. Watch Percentage (%)</label>
+                                    <input type="number" name="min_watch_percent" value="80" class="form-control" min="0" max="100">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Min. Watch Time (Seconds)</label>
+                                    <input type="number" name="min_watch_time" value="0" class="form-control" min="0">
+                                </div>
                             </div>
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>Min. Watch Time (Seconds)</label>
-                                <input type="number" name="min_watch_time" value="0" class="form-control" min="0">
-                            </div>
-                        </div>
 
-                        <div class="grid-row" style="margin-bottom: 1.5rem;">
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>Required Replays</label>
-                                <input type="number" name="required_replays" value="1" class="form-control" min="1">
+                            <div class="grid-row" style="margin-bottom: 1.5rem;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Required Replays</label>
+                                    <input type="number" name="required_replays" value="1" class="form-control" min="1">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Checkpoint Interval (Seconds)</label>
+                                    <input type="number" name="checkpoint_interval" value="30" class="form-control" min="10">
+                                </div>
                             </div>
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label>Checkpoint Interval (Seconds)</label>
-                                <input type="number" name="checkpoint_interval" value="30" class="form-control" min="10">
-                            </div>
-                        </div>
 
-                        <div class="grid-row" style="align-items: center; background: #fafafa; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 1rem;">
-                            <div class="checkbox-group" style="margin-bottom: 0;">
-                                <input type="checkbox" id="allowSeek" name="allow_seek" style="width: 20px; height: 20px;">
-                                <label for="allowSeek" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Allow Seeking</label>
-                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Let students skip around the video freely.</span>
-                            </div>
-                            <div class="checkbox-group" style="margin-bottom: 0;">
-                                <input type="checkbox" id="disableFastForward" name="disable_fast_forward" checked style="width: 20px; height: 20px;">
-                                <label for="disableFastForward" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Disable Fast-Forward</label>
-                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Prevent playback speed increases.</span>
-                            </div>
-                            <div class="checkbox-group" style="margin-bottom: 0; margin-top: 1rem;">
-                                <input type="checkbox" id="enableCheckpoints" name="enable_checkpoints" checked style="width: 20px; height: 20px;">
-                                <label for="enableCheckpoints" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Enable Checkpoints</label>
-                                <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Pause video periodically to ensure attention.</span>
+                            <div class="grid-row" style="align-items: center; background: #fafafa; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 1rem;">
+                                <div class="checkbox-group" style="margin-bottom: 0;">
+                                    <input type="checkbox" id="allowSeek" name="allow_seek" style="width: 20px; height: 20px;">
+                                    <label for="allowSeek" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Allow Seeking</label>
+                                    <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Let students skip around the video freely.</span>
+                                </div>
+                                <div class="checkbox-group" style="margin-bottom: 0;">
+                                    <input type="checkbox" id="disableFastForward" name="disable_fast_forward" checked style="width: 20px; height: 20px;">
+                                    <label for="disableFastForward" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Disable Fast-Forward</label>
+                                    <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Prevent playback speed increases.</span>
+                                </div>
+                                <div class="checkbox-group" style="margin-bottom: 0; margin-top: 1rem;">
+                                    <input type="checkbox" id="enableCheckpoints" name="enable_checkpoints" checked style="width: 20px; height: 20px;">
+                                    <label for="enableCheckpoints" style="font-weight: 600; font-size: 1rem; color: #1e293b;">Enable Checkpoints</label>
+                                    <span style="display: block; font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; font-weight: normal;">Pause video periodically to ensure attention.</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -381,7 +383,7 @@
                             <!-- Questions will be dynamically added here -->
                         </div>
 
-                        <div class="grid-row">
+                        <div class="grid-row" style="display: none;">
                             <div class="form-group">
                                 <label>Passing Score (%)</label>
                                 <input type="number" name="passing_score" value="70" class="form-control" min="0" max="100">

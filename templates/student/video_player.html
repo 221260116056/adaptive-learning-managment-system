@@ -733,8 +733,7 @@
                 style="display: flex; align-items: center; justify-content: center; background: #0f172a; padding: 3rem; min-height: 400px;">
                 <div class="overlay-content" style="text-align: center; color: white;">
                     <h2>Content Locked</h2>
-                    <p style="margin-top: 1rem; color: #cbd5e1;">{{ lock_reason|default:"Please complete earlier modules
-                        first." }}</p>
+                    <p style="margin-top: 1rem; color: #cbd5e1;">{{ lock_reason|default:"Please complete earlier modules first." }}</p>
                     <a href="{% url 'player_course' module.course.moodle_course_id|default:module.course.id %}"
                         class="btn-action btn-primary" style="margin-top: 1.5rem; display: inline-block;">Return to
                         Syllabus</a>
@@ -1159,7 +1158,7 @@
             {% endif %}
 
             {% if module.type == 'quiz' %}
-            <div id="quizOverlay" class="player-overlay">
+            <div id="quizOverlay" style="background: rgba(15, 23, 42, 0.94); border-radius: 16px; min-height: 60vh; width: 100%;">
                 <div class="quiz-card">
                     <h3 id="quizQuestion">Quiz</h3>
                     <div id="quizOptions" class="quiz-options"></div>
@@ -1240,8 +1239,7 @@
                         <span class="theory-kicker"
                             style="color: #6366f1; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">Assignment
                             Module</span>
-                        <h1 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; font-weight: 800;">{{ module.title|safe
-                            }}</h1>
+                        <h1 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; font-weight: 800;">{{ module.title|safe }}</h1>
                         <p style="color: #64748b;">Complete the task and submit your work for review.</p>
                     </div>
                     {% if submission %}
@@ -1277,7 +1275,7 @@
                     </a>
                     {% endif %}
 
-                    {% if submission and submission.feedback %}
+                    {% if submission %}
                     <button onclick="toggleFeedback()" class="btn-action btn-secondary"
                         style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fefce8; border: 1px solid #fef08a; color: #854d0e;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"

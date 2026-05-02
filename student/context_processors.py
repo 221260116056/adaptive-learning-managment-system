@@ -1,4 +1,5 @@
 from .models import Notification, StudentProfile, Certificate, Course, AssignmentSubmission
+from django.db.models import Q, F
 
 def notification_processor(request):
     """
@@ -31,8 +32,8 @@ def notification_processor(request):
                 status='pending_teacher'
             ).count()
             data['teacher_pending_assignments_count'] = AssignmentSubmission.objects.filter(
-                module__course__teacher=request.user, 
-                status='pending'
+                Q(status='pending') | Q(replied_at__gt=F('reviewed_at')),
+                module__course__teacher=request.user
             ).count()
 
     return data

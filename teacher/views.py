@@ -941,13 +941,22 @@ def teacher_send_message_api(request, submission_id):
                 is_teacher=True
             )
             
+            # Acknowledge student's reply by updating reviewed_at
+            from django.utils import timezone
+            submission.reviewed_at = timezone.now()
+            submission.save(update_fields=['reviewed_at'])
+            
             # Notify student
             from student.models import Notification
-            Notification.objects.get_or_create(
+            notif, created = Notification.objects.get_or_create(
                 user=submission.student,
                 message=f"Instructor {request.user.username} sent a message regarding {submission.module.title}.",
                 link=reverse('video_player', args=[submission.module.id])
             )
+            if not created:
+                notif.is_read = False
+                notif.created_at = timezone.now()
+                notif.save(update_fields=['is_read', 'created_at'])
             
             return JsonResponse({'status': 'success', 'message': 'Message sent successfully'})
         except Exception as e:

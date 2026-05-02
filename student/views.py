@@ -1478,9 +1478,7 @@ def submit_assignment_reply_api(request):
             module = get_object_or_404(Module, id=module_id, type='assignment')
             submission = get_object_or_404(AssignmentSubmission, student=request.user, module=module)
             
-            if not submission.feedback:
-                return JsonResponse({'status': 'error', 'message': 'You can only reply to teacher feedback'}, status=400)
-                
+
             submission.student_reply = reply_text
             submission.replied_at = timezone.now()
             submission.save()
@@ -1494,11 +1492,15 @@ def submit_assignment_reply_api(request):
             )
             
             # Notify teacher
-            Notification.objects.get_or_create(
+            notif, created = Notification.objects.get_or_create(
                 user=module.course.teacher,
                 message=f"Student {request.user.username} replied to assignment feedback: {module.title}.",
                 link=reverse('teacher:review_assignments')
             )
+            if not created:
+                notif.is_read = False
+                notif.created_at = timezone.now()
+                notif.save(update_fields=['is_read', 'created_at'])
             
             return JsonResponse({'status': 'success', 'message': 'Reply submitted successfully'})
         except Exception as e:
@@ -1572,7 +1574,7 @@ def resume_course(request, course_id):
             if not lp or not lp.is_completed:
                 return redirect(get_module_url(mod))
                 
-        return redirect('course_detail_public', course_id=course.id)
+        return redirect(get_module_url(modules[0]))
         
     if not latest_progress.is_completed:
         return redirect(get_module_url(latest_progress.module))
@@ -1593,4 +1595,4 @@ def resume_course(request, course_id):
             return redirect(get_module_url(mod))
             
     # All modules are completed
-    return redirect('course_detail_public', course_id=course.id)
+    return redirect(get_module_url(modules[0]))

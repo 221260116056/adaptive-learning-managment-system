@@ -1,5 +1,16 @@
 {% extends 'student/base.html' %}
 
+{% block extra_css %}
+<style>
+    .dashboard-progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, var(--primary), #a78bfa);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container" style="padding: 2rem;">
     <div style="margin-bottom: 2rem;">
@@ -53,7 +64,7 @@
                         <span style="color: var(--dark);">{{ course.progress }}%</span>
                     </div>
                     <div style="height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
-                        <div style="width: {{ course.progress }}%; height: 100%; background: linear-gradient(to right, var(--primary), #a78bfa); border-radius: 4px; transition: width 0.5s ease;"></div>
+                        <div class="dashboard-progress-fill" data-progress="{{ course.progress }}"></div>
                     </div>
                 </div>
 
@@ -85,4 +96,11 @@
     </div>
 
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('.dashboard-progress-fill').forEach(function(el) {
+            el.style.width = (el.getAttribute('data-progress') || 0) + '%';
+        });
+    });
+</script>
 {% endblock %}
